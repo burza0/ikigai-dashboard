@@ -19,7 +19,7 @@ http://localhost:5173
 
 ## 🔗 Połączenie z backendem
 
-Upewnij się, że **backend SKATECROSS** działa na porcie `5000`:
+Upewnij się, że **backend SKATECROSS** działa na porcie `5001`:
 ```bash
 cd ../backend
 python api_server.py
@@ -63,7 +63,7 @@ rm -rf node_modules && npm install
 ## 🔧 Troubleshooting
 
 ### Backend niedostępny
-- Sprawdź czy backend działa na porcie 5000
+- Sprawdź czy backend działa na porcie 5001
 - Uruchom: `cd ../backend && python api_server.py`
 
 ### Błędy TypeScript

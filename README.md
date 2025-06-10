@@ -62,7 +62,7 @@ npm run preview
 ## ⚙️ Konfiguracja
 
 ### Backend API
-Upewnij się, że backend SKATECROSS działa na porcie 5000. Vite proxy automatycznie przekieruje żądania `/api/*` na `http://localhost:5000`.
+Upewnij się, że backend SKATECROSS działa na porcie 5000. Vite proxy automatycznie przekieruje żądania `/api/*` na `http://localhost:5001`.
 
 ### Dark Mode
 Aplikacja automatycznie zapisuje preferencje dark mode w localStorage.
