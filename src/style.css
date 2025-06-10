@@ -1,0 +1,67 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Custom styles for SKATECROSS QR */
+body {
+  margin: 0;
+  padding: 0;
+}
+
+/* QR Print styles */
+@media print {
+  .print-content {
+    width: 100%;
+    max-width: none;
+  }
+  
+  .sticker-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 0.25rem;
+    padding: 0.5rem;
+  }
+  
+  .sticker {
+    border: 1px solid #ddd;
+    padding: 0.25rem;
+    text-align: center;
+    page-break-inside: avoid;
+    background: white;
+    min-height: 3rem;
+  }
+  
+  .sticker-header {
+    margin-bottom: 0.25rem;
+  }
+  
+  .nr-startowy {
+    font-weight: bold;
+    font-size: 0.875rem;
+  }
+  
+  .zawodnik-name {
+    font-size: 0.75rem;
+    color: #666;
+  }
+  
+  .qr-container {
+    margin: 0.25rem 0;
+  }
+  
+  .qr-code {
+    width: 2rem;
+    height: 2rem;
+    margin: 0 auto;
+    display: block;
+  }
+  
+  .sticker-footer {
+    font-size: 0.625rem;
+    color: #888;
+  }
+  
+  .kategoria, .klub {
+    line-height: 1;
+  }
+} 
