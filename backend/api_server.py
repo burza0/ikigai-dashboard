@@ -368,8 +368,8 @@ def set_grupa_aktywna():
                 SET status = 'ACTIVE'
                 WHERE kategoria = %s AND plec = %s
             """, (kategoria, plec))
-            
-            return jsonify({
+    
+    return jsonify({
                 "success": True,
                 "action": "added",
                 "message": f"Grupa {nazwa} została aktywowana"
@@ -385,7 +385,7 @@ def set_grupa_aktywna():
 def get_start_queue():
     """Pobieranie kolejki startowej"""
     try:
-        rows = get_all("""
+    rows = get_all("""
             SELECT DISTINCT
                 z.nr_startowy,
                 z.imie,

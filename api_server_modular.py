@@ -1,0 +1,1 @@
+from flask import Flask; from flask_cors import CORS; from backend.api import zawodnicy_bp, qr_generation_bp, centrum_startu_bp; app = Flask(__name__); CORS(app); app.register_blueprint(zawodnicy_bp); print('Modular server ready')
