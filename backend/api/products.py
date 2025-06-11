@@ -192,6 +192,34 @@ VENDING_MACHINES = {
         'last_refill': '2025-06-09T16:00:00',
         'operating_hours': '07:00-19:00',
         'payment_methods': ['card', 'mobile', 'qr_code']
+    },
+    'vm004': {
+        'id': 'vm004',
+        'name': 'IKIGAI University',
+        'location': 'Uniwersytet Warszawski - Biblioteka',
+        'address': 'ul. Krakowskie Przedmieście 26/28, Warszawa',
+        'coordinates': {'lat': 52.2400, 'lng': 21.0200},
+        'status': 'online',
+        'available_products': ['green_smoothie', 'berry_bowl', 'energy_bar', 'vitamin_water'],
+        'capacity': 35,
+        'current_stock': 31,
+        'last_refill': '2025-06-10T09:00:00',
+        'operating_hours': '06:00-22:00',
+        'payment_methods': ['card', 'mobile', 'qr_code']
+    },
+    'vm005': {
+        'id': 'vm005',
+        'name': 'IKIGAI Park',
+        'location': 'Park Łazienkowski - Wejście główne',
+        'address': 'ul. Agrykola 1, Warszawa',
+        'coordinates': {'lat': 52.2150, 'lng': 21.0350},
+        'status': 'online',
+        'available_products': ['fresh_juice', 'vitamin_water', 'energy_bar', 'berry_bowl'],
+        'capacity': 25,
+        'current_stock': 23,
+        'last_refill': '2025-06-10T07:00:00',
+        'operating_hours': '05:30-21:00',
+        'payment_methods': ['card', 'mobile', 'qr_code']
     }
 }
 

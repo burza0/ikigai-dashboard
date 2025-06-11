@@ -95,13 +95,13 @@
         <!-- Kreator Mieszanek - Purple (GŁÓWNA FUNKCJA) -->
         <div @click="$emit('navigate', 'mixer')" class="md:col-span-1 bg-gradient-to-br from-purple-500 to-purple-600 rounded-xl p-8 text-white hover:scale-[1.02] transition-transform duration-200 cursor-pointer">
           <div class="flex items-center mb-6">
-            <svg class="w-10 h-10 mr-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
-              <circle cx="12" cy="12" r="10"/>
-              <path d="M12 6v12"/>
-              <path d="M6 12h12"/>
-              <circle cx="12" cy="12" r="3"/>
+            <svg class="w-11 h-11 mr-4 text-purple-200" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+              <path d="M12 6V4a2 2 0 1 0-4 0v2"/>
+              <path d="M14 6V4a2 2 0 1 0 4 0v2"/>
+              <path d="M4 16c0 6 2 8 8 8s8-2 8-8"/>
+              <rect x="4" y="8" width="16" height="8" rx="2"/>
             </svg>
-            <h3 class="text-xl font-semibold">🥣 Kreator Mieszanek</h3>
+            <h3 class="text-3xl font-semibold">Kreator Mieszanek</h3>
           </div>
           <p class="text-lg text-purple-100 mb-6">Skomponuj swoją idealną mieszankę szczęścia IKIGAI</p>
           <div class="text-3xl font-bold mb-3">4 bazy + 6 dodatków</div>
@@ -109,88 +109,73 @@
         </div>
 
         <!-- Orders & QR Workflow - Blue (Admin only) -->
-        <div v-if="isAdmin" class="md:col-span-1 bg-gradient-to-br from-blue-500 to-blue-600 rounded-xl p-8 text-white hover:scale-[1.02] transition-transform duration-200 cursor-pointer">
+        <div v-if="isAdmin" class="md:col-span-1 bg-gradient-to-br from-blue-500 to-blue-600 rounded-xl p-8 text-white hover:scale-[1.02] transition-transform duration-200 cursor-pointer" @click="$emit('navigate', 'orders')">
           <div class="flex items-center mb-6">
-            <svg class="w-10 h-10 mr-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
-              <path d="M9 12l2 2 4-4"/>
-              <circle cx="12" cy="12" r="10"/>
+            <svg class="w-11 h-11 mr-4 text-blue-200" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+              <rect x="3" y="3" width="18" height="18" rx="2" ry="2"/>
+              <rect x="7" y="7" width="10" height="10" rx="1"/>
             </svg>
-            <h3 class="text-xl font-semibold">📦 Orders</h3>
+            <h3 class="text-3xl font-semibold">Orders</h3>
           </div>
-          <p class="text-lg text-blue-100 mb-6">QR workflow management system</p>
-          <div class="text-3xl font-bold mb-3">847 zamówień</div>
-          <div class="text-blue-200 text-base">+12% ten miesiąc ↗</div>
+          <p class="text-lg text-blue-100 mb-6">Zarządzanie zamówieniami QR i workflow</p>
+          <div class="text-3xl font-bold mb-3">{{orders.length}} zamówień</div>
+          <div class="text-blue-200 text-base">Status: Aktywne 🔄</div>
+        </div>
+
+        <!-- Analytics & Reports - Dark blue (Admin only) -->
+        <div v-if="isAdmin" class="md:col-span-1 bg-gradient-to-br from-slate-700 to-slate-800 rounded-xl p-8 text-white hover:scale-[1.02] transition-transform duration-200 cursor-pointer" @click="$emit('navigate', 'analytics')">
+          <div class="flex items-center mb-6">
+            <svg class="w-11 h-11 mr-4 text-slate-300" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+              <rect x="3" y="3" width="18" height="18" rx="2" ry="2"/>
+              <path d="M9 9h6v6H9z"/>
+            </svg>
+            <h3 class="text-3xl font-semibold">Analytics</h3>
+          </div>
+          <p class="text-lg text-slate-100 mb-6">Raporty sprzedaży i analityka biznesowa</p>
+          <div class="text-3xl font-bold mb-3">{{analytics.totalSales}}</div>
+          <div class="text-slate-200 text-base">Miesięczny wzrost: +{{analytics.growth}}% 📈</div>
+        </div>
+
+        <!-- Mobile QR App - Blue (General users) -->
+        <div @click="$emit('navigate', 'mobile')" class="md:col-span-1 bg-gradient-to-br from-blue-500 to-blue-600 rounded-xl p-8 text-white hover:scale-[1.02] transition-transform duration-200 cursor-pointer">
+          <div class="flex items-center mb-6">
+            <svg class="w-11 h-11 mr-4 text-blue-200" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+              <rect x="3" y="3" width="18" height="18" rx="2" ry="2"/>
+              <path d="M9 9h6v6h-6z"/>
+            </svg>
+            <h3 class="text-3xl font-semibold">Mobile QR App</h3>
+          </div>
+          <p class="text-lg text-blue-100 mb-6">Zarządzaj kodami QR i zamówieniami mobilnie</p>
+          <div class="text-3xl font-bold mb-3">Skanuj & Płać</div>
+          <div class="text-blue-200 text-base">Twoje zamówienia w telefonie 🎯</div>
         </div>
 
         <!-- Mapa Automatów - Green -->
-        <div @click="$emit('navigate', 'map')" class="md:col-span-1 bg-gradient-to-br from-green-500 to-green-600 rounded-xl p-8 text-white hover:scale-[1.02] transition-transform duration-200 cursor-pointer">
+        <div @click="$emit('navigate', 'vending')" class="md:col-span-1 bg-gradient-to-br from-green-500 to-green-600 rounded-xl p-8 text-white hover:scale-[1.02] transition-transform duration-200 cursor-pointer">
           <div class="flex items-center mb-6">
-            <svg class="w-10 h-10 mr-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+            <svg class="w-11 h-11 mr-4 text-green-200" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
               <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/>
               <circle cx="12" cy="10" r="3"/>
             </svg>
-            <h3 class="text-xl font-semibold">🗺️ Mapa Automatów</h3>
+            <h3 class="text-3xl font-semibold">Mapa Automatów</h3>
           </div>
           <p class="text-lg text-green-100 mb-6">Interaktywna mapa z lokalizacjami automatów IKIGAI</p>
-          <div class="text-3xl font-bold mb-3">3 lokalizacje</div>
+          <div class="text-3xl font-bold mb-3">5 lokalizacji</div>
           <div class="text-green-200 text-base">Znajdź najbliższy automat 📍</div>
         </div>
 
-        <!-- Program Lojalnościowy - Orange -->
-        <div @click="$emit('navigate', 'loyalty')" class="md:col-span-1 bg-gradient-to-br from-orange-500 to-orange-600 rounded-xl p-8 text-white hover:scale-[1.02] transition-transform duration-200 cursor-pointer">
+        <!-- Program Lojalnościowy - Gold/Yellow -->
+        <div @click="$emit('navigate', 'loyalty')" class="md:col-span-1 bg-gradient-to-br from-yellow-500 to-yellow-600 rounded-xl p-8 text-white hover:scale-[1.02] transition-transform duration-200 cursor-pointer">
           <div class="flex items-center mb-6">
-            <svg class="w-10 h-10 mr-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
-              <path d="M12 6v6l4 2"/>
-              <circle cx="12" cy="12" r="10"/>
+            <svg class="w-11 h-11 mr-4 text-yellow-200" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+              <polygon points="12,2 15.09,8.26 22,9.27 17,14.14 18.18,21.02 12,17.77 5.82,21.02 7,14.14 2,9.27 8.91,8.26"/>
             </svg>
-            <h3 class="text-xl font-semibold">🏆 Program Lojalnościowy</h3>
+            <h3 class="text-3xl font-semibold">Program Lojalnościowy</h3>
           </div>
-          <p class="text-lg text-orange-100 mb-6">Zbieraj punkty, podejmuj wyzwania, zyskuj nagrody za zdrowy styl życia</p>
-          <div class="text-orange-200 text-base">Zacznij zbierać punkty! 🌟</div>
+          <p class="text-lg text-yellow-100 mb-6">Zbieraj punkty IKIGAI i odbieraj nagrody</p>
+          <div class="text-3xl font-bold mb-3">Dołącz teraz!</div>
+          <div class="text-yellow-200 text-base">Ekskluzywne korzyści ⭐</div>
         </div>
-
-        <!-- Mobile QR App - Pink/Purple -->
-        <div @click="$emit('navigate', 'mobile')" class="md:col-span-1 bg-gradient-to-br from-pink-500 to-purple-600 rounded-xl p-8 text-white hover:scale-[1.02] transition-transform duration-200 cursor-pointer">
-          <div class="flex items-center mb-6">
-            <svg class="w-10 h-10 mr-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
-              <rect x="5" y="2" width="14" height="20" rx="2" ry="2"/>
-              <path d="M12 18h.01"/>
-              <rect x="8" y="6" width="8" height="8"/>
-            </svg>
-            <h3 class="text-xl font-semibold">📱 Mobile QR App</h3>
-          </div>
-          <p class="text-lg text-pink-100 mb-6">Skanowanie QR, płatności mobilne, push notifications</p>
-          <div class="text-3xl font-bold mb-3">3 funkcje</div>
-          <div class="text-pink-200 text-base">Zaawansowane możliwości mobilne 🚀</div>
-        </div>
-
-        <!-- Analytics - Orange (Admin only) -->
-        <div v-if="isAdmin" class="md:col-span-2 bg-gradient-to-br from-red-500 to-red-600 rounded-xl p-8 text-white hover:scale-[1.02] transition-transform duration-200 cursor-pointer">
-          <div class="flex items-center mb-6">
-            <svg class="w-10 h-10 mr-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
-              <rect x="3" y="3" width="18" height="18" rx="2" ry="2"/>
-              <path d="M7 16l3-3 3 3 4-6"/>
-            </svg>
-            <h3 class="text-2xl font-semibold">📊 Analytics & Insights</h3>
-            <span class="ml-auto px-3 py-1.5 bg-red-400 rounded-full text-sm font-medium">ADMIN</span>
-          </div>
-          <p class="text-lg text-red-100 mb-6">Zaawansowane analizy sprzedaży, KPI i trendy zdrowotne</p>
-          <div class="grid grid-cols-3 gap-6">
-            <div>
-              <div class="text-3xl font-bold">12,456zł</div>
-              <div class="text-red-200 text-base">Przychód</div>
-            </div>
-            <div>
-              <div class="text-3xl font-bold">94%</div>
-              <div class="text-red-200 text-base">Satysfakcja</div>
-            </div>
-            <div>
-              <div class="text-3xl font-bold">234</div>
-              <div class="text-red-200 text-base">Aktywni klienci</div>
-            </div>
-          </div>
-        </div>
-
 
       </div>
     </div>
@@ -213,8 +198,6 @@
         <div class="animate-spin rounded-full h-12 w-12 border-b-2 border-purple-600"></div>
       </div>
 
-
-
       <div v-if="!loadingRecommendations" class="grid grid-cols-1 md:grid-cols-2 gap-8">
         <div 
           v-for="(rec, index) in recommendations" 
@@ -222,8 +205,6 @@
           class="bg-gradient-to-br from-gray-50 to-white dark:from-gray-700 dark:to-gray-800 rounded-xl p-8 border border-gray-200 dark:border-gray-600 hover:shadow-lg transition-all duration-200 cursor-pointer hover:scale-[1.02]"
           @click="orderRecommendation(rec)"
         >
-
-
           <!-- Name & Description -->
           <h3 class="font-semibold text-gray-900 dark:text-white mb-4 text-lg">{{ rec.name || 'Ładowanie...' }}</h3>
           <p class="text-base text-gray-600 dark:text-gray-400 mb-6">{{ rec.description || 'Opis produktu...' }}</p>
@@ -288,6 +269,11 @@ defineEmits<{
 // Reactive data
 const recommendations = ref([])
 const loadingRecommendations = ref(false)
+const orders = ref([])
+const analytics = ref({
+  totalSales: '12,456zł',
+  growth: 15
+})
 const orderAlert = ref({
   show: false,
   type: 'success',

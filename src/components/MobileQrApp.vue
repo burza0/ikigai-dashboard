@@ -104,6 +104,147 @@
         </div>
       </div>
 
+      <!-- My QR Codes Tab -->
+      <div v-if="activeTab === 'my-qr'" class="space-y-6">
+        <!-- Generated QR Codes Section -->
+        <div class="bg-white/10 backdrop-blur-md rounded-2xl p-6 border border-white/20">
+          <div class="flex items-center justify-between mb-4">
+            <h3 class="text-xl font-bold text-white">🎫 Moje kody QR</h3>
+            <button @click="refreshQrCodes" class="bg-purple-500/20 hover:bg-purple-500/30 text-purple-400 px-3 py-2 rounded-lg transition-all duration-200">
+              <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path>
+              </svg>
+            </button>
+          </div>
+          
+          <!-- Active QR Codes -->
+          <div v-if="myQrCodes.length > 0" class="space-y-4">
+            <div v-for="qr in myQrCodes" :key="qr.id" 
+                 class="bg-white/5 rounded-xl p-4 border border-white/10">
+              <div class="flex items-center justify-between mb-3">
+                <div>
+                  <h4 class="text-white font-bold">{{ qr.name }}</h4>
+                  <p class="text-white/60 text-sm">{{ qr.description }}</p>
+                </div>
+                <div class="text-right">
+                  <div class="text-white font-bold text-lg">{{ qr.price }}zł</div>
+                  <div :class="[
+                    'px-2 py-1 rounded-full text-xs font-medium',
+                    qr.status === 'active' ? 'bg-green-500/20 text-green-400' :
+                    qr.status === 'used' ? 'bg-gray-500/20 text-gray-400' :
+                    qr.status === 'expired' ? 'bg-red-500/20 text-red-400' :
+                    'bg-yellow-500/20 text-yellow-400'
+                  ]">
+                    {{ getStatusText(qr.status) }}
+                  </div>
+                </div>
+              </div>
+              
+              <!-- QR Code Display -->
+              <div class="bg-white rounded-lg p-4 mb-3 text-center">
+                <div class="w-32 h-32 mx-auto bg-gray-100 rounded border-2 border-gray-300 flex items-center justify-center">
+                  <div class="text-xs text-gray-600 text-center">
+                    <div class="text-2xl mb-1">🎯</div>
+                    <div>QR CODE</div>
+                    <div class="font-mono text-xs">{{ qr.code.substring(0, 8) }}...</div>
+                  </div>
+                </div>
+              </div>
+              
+              <!-- QR Actions -->
+              <div class="flex gap-2">
+                <button @click="showQrFullscreen(qr)" 
+                        class="flex-1 bg-blue-500/20 hover:bg-blue-500/30 text-blue-400 py-2 px-3 rounded-lg text-sm font-medium transition-all duration-200">
+                  👁️ Pokaż pełny
+                </button>
+                <button @click="shareQr(qr)" 
+                        class="flex-1 bg-green-500/20 hover:bg-green-500/30 text-green-400 py-2 px-3 rounded-lg text-sm font-medium transition-all duration-200">
+                  📤 Udostępnij
+                </button>
+                <button @click="deleteQr(qr.id)" 
+                        v-if="qr.status === 'active'"
+                        class="flex-1 bg-red-500/20 hover:bg-red-500/30 text-red-400 py-2 px-3 rounded-lg text-sm font-medium transition-all duration-200">
+                  🗑️ Usuń
+                </button>
+              </div>
+              
+              <!-- Additional Info -->
+              <div class="mt-3 pt-3 border-t border-white/10">
+                <div class="flex justify-between text-xs text-white/60">
+                  <span>Utworzony: {{ qr.created }}</span>
+                  <span v-if="qr.expiresAt">Wygasa: {{ qr.expiresAt }}</span>
+                </div>
+                <div v-if="qr.usedAt" class="text-xs text-white/60 mt-1">
+                  Użyty: {{ qr.usedAt }} w {{ qr.usedLocation }}
+                </div>
+              </div>
+            </div>
+          </div>
+          
+          <!-- Empty State -->
+          <div v-else class="text-center py-8">
+            <div class="text-6xl mb-4">📱</div>
+            <h4 class="text-xl font-bold text-white mb-2">Brak kodów QR</h4>
+            <p class="text-white/60 mb-4">Utworz swoją pierwszą mieszankę w Kreatorze, aby wygenerować kod QR</p>
+            <button @click="$emit('navigate', 'mixer')" 
+                    class="bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white font-bold py-3 px-6 rounded-xl transition-all duration-200">
+              🥣 Stwórz mieszankę
+            </button>
+          </div>
+        </div>
+
+        <!-- QR Management Options -->
+        <div class="bg-white/10 backdrop-blur-md rounded-2xl p-6 border border-white/20">
+          <h4 class="text-lg font-bold text-white mb-4">⚙️ Zarządzanie</h4>
+          <div class="space-y-3">
+            <button @click="bulkDeleteExpired" 
+                    class="w-full bg-orange-500/20 hover:bg-orange-500/30 text-orange-400 py-3 px-4 rounded-xl text-left transition-all duration-200">
+              <div class="flex items-center justify-between">
+                <div>
+                  <div class="font-medium">🧹 Usuń wygasłe kody</div>
+                  <div class="text-sm opacity-70">Wyczyść nieaktywne zamówienia</div>
+                </div>
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path>
+                </svg>
+              </div>
+            </button>
+            
+            <button @click="exportQrHistory" 
+                    class="w-full bg-blue-500/20 hover:bg-blue-500/30 text-blue-400 py-3 px-4 rounded-xl text-left transition-all duration-200">
+              <div class="flex items-center justify-between">
+                <div>
+                  <div class="font-medium">📥 Eksportuj historię</div>
+                  <div class="text-sm opacity-70">Pobierz historię zamówień</div>
+                </div>
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
+                </svg>
+              </div>
+            </button>
+            
+            <button @click="toggleAutoDelete" 
+                    class="w-full bg-purple-500/20 hover:bg-purple-500/30 text-purple-400 py-3 px-4 rounded-xl text-left transition-all duration-200">
+              <div class="flex items-center justify-between">
+                <div>
+                  <div class="font-medium">{{ autoDeleteEnabled ? '🔕' : '🔔' }} Auto-usuwanie</div>
+                  <div class="text-sm opacity-70">{{ autoDeleteEnabled ? 'Wyłącz' : 'Włącz' }} automatyczne czyszczenie</div>
+                </div>
+                <div :class="[
+                  'w-6 h-3 rounded-full transition-all duration-200',
+                  autoDeleteEnabled ? 'bg-purple-500' : 'bg-white/20'
+                ]">
+                  <div :class="[
+                    'w-3 h-3 rounded-full bg-white transition-transform duration-200',
+                    autoDeleteEnabled ? 'translate-x-3' : 'translate-x-0'
+                  ]"></div>
+                </div>
+              </div>
+            </button>
+          </div>
+        </div>
+      </div>
+
       <!-- Payments Tab -->
       <div v-if="activeTab === 'payment'" class="space-y-6">
         <div class="bg-white/10 backdrop-blur-md rounded-2xl p-6 border border-white/20">
@@ -348,10 +489,12 @@ const currentLevel = ref('🏆')
 const showPayment = ref(false)
 const paymentAmount = ref(0)
 const paymentDescription = ref('')
+const autoDeleteEnabled = ref(true)
 
 // Tabs configuration
 const tabs = [
   { id: 'scanner', name: 'Skaner', icon: '📱' },
+  { id: 'my-qr', name: 'Moje QR', icon: '🎫' },
   { id: 'payment', name: 'Płatność', icon: '💳' },
   { id: 'orders', name: 'Zamówienia', icon: '📦' }
 ]
@@ -436,6 +579,46 @@ const notifications = ref([
     message: '20% zniżki na wszystkie Protein Bowls do końca tygodnia',
     time: '1 godzinę temu',
     read: true
+  }
+])
+
+// My QR Codes data
+const myQrCodes = ref([
+  {
+    id: 1,
+    name: 'Energizing Morning Bowl',
+    description: 'Smoothie z mango, bananem i szpinakiem + granola',
+    price: 18.50,
+    status: 'active',
+    code: 'IKIGAI:ORDER:EM001:2024-12-11T10:30:00Z',
+    created: 'Dzisiaj 10:30',
+    expiresAt: 'Dzisiaj 18:30',
+    usedAt: null,
+    usedLocation: null
+  },
+  {
+    id: 2,
+    name: 'Protein Power Mix',
+    description: 'Shake białkowy z jagodami i orzechami',
+    price: 16.00,
+    status: 'used',
+    code: 'IKIGAI:ORDER:PP002:2024-12-10T14:15:00Z',
+    created: 'Wczoraj 14:15',
+    expiresAt: 'Wczoraj 22:15',
+    usedAt: 'Wczoraj 15:30',
+    usedLocation: 'IKIGAI Central'
+  },
+  {
+    id: 3,
+    name: 'Green Detox Delight',
+    description: 'Sok z kale, ogórka, jabłka i imbiru',
+    price: 14.50,
+    status: 'expired',
+    code: 'IKIGAI:ORDER:GD003:2024-12-09T16:00:00Z',
+    created: '2 dni temu',
+    expiresAt: '2 dni temu',
+    usedAt: null,
+    usedLocation: null
   }
 ])
 
@@ -606,4 +789,115 @@ onMounted(() => {
     }
   }, 3000)
 })
+
+// QR Management Functions
+const refreshQrCodes = async () => {
+  try {
+    // Symulacja odświeżania kodów QR z API
+    showToast('success', '🔄 Kody QR zostały odświeżone')
+  } catch (error) {
+    showToast('error', '❌ Błąd odświeżania kodów QR')
+  }
+}
+
+const getStatusText = (status: string) => {
+  switch (status) {
+    case 'active':
+      return '✅ Aktywny'
+    case 'used':
+      return '✔️ Użyty'
+    case 'expired':
+      return '⏰ Wygasły'
+    case 'preparing':
+      return '🔄 W przygotowaniu'
+    default:
+      return '❓ Nieznany'
+  }
+}
+
+const showQrFullscreen = (qr: any) => {
+  // Tutaj można dodać modal z pełnoekranowym kodem QR
+  showToast('success', `📱 Pokazuję kod QR dla: ${qr.name}`)
+}
+
+const shareQr = (qr: any) => {
+  if (navigator.share) {
+    navigator.share({
+      title: `IKIGAI QR - ${qr.name}`,
+      text: `Mój kod QR do zamówienia: ${qr.description}`,
+      url: `ikigai://qr/${qr.code}`
+    })
+  } else {
+    // Fallback - kopiowanie do schowka
+    navigator.clipboard.writeText(qr.code)
+    showToast('success', '📋 Kod QR skopiowany do schowka')
+  }
+}
+
+const deleteQr = async (qrId: number) => {
+  if (confirm('Czy na pewno chcesz usunąć ten kod QR? Ta akcja jest nieodwracalna.')) {
+    try {
+      // Symulacja usuwania z API
+      await new Promise(resolve => setTimeout(resolve, 500))
+      
+      const index = myQrCodes.value.findIndex(qr => qr.id === qrId)
+      if (index > -1) {
+        const deletedQr = myQrCodes.value.splice(index, 1)[0]
+        showToast('success', `🗑️ Kod QR "${deletedQr.name}" został usunięty`)
+      }
+    } catch (error) {
+      showToast('error', '❌ Błąd podczas usuwania kodu QR')
+    }
+  }
+}
+
+const bulkDeleteExpired = async () => {
+  const expiredCodes = myQrCodes.value.filter(qr => qr.status === 'expired')
+  
+  if (expiredCodes.length === 0) {
+    showToast('info', '📋 Brak wygasłych kodów do usunięcia')
+    return
+  }
+  
+  if (confirm(`Czy chcesz usunąć ${expiredCodes.length} wygasłych kodów QR?`)) {
+    try {
+      await new Promise(resolve => setTimeout(resolve, 1000))
+      
+      myQrCodes.value = myQrCodes.value.filter(qr => qr.status !== 'expired')
+      showToast('success', `🧹 Usunięto ${expiredCodes.length} wygasłych kodów QR`)
+    } catch (error) {
+      showToast('error', '❌ Błąd podczas usuwania kodów QR')
+    }
+  }
+}
+
+const exportQrHistory = async () => {
+  try {
+    // Symulacja eksportu danych
+    await new Promise(resolve => setTimeout(resolve, 1500))
+    
+    const data = myQrCodes.value.map(qr => ({
+      name: qr.name,
+      price: qr.price,
+      status: qr.status,
+      created: qr.created,
+      used: qr.usedAt || 'Nie użyty'
+    }))
+    
+    // W rzeczywistej aplikacji tutaj byłby eksport do CSV/PDF
+    console.log('Eksportowane dane:', data)
+    showToast('success', '📥 Historia została wyeksportowana')
+  } catch (error) {
+    showToast('error', '❌ Błąd eksportu danych')
+  }
+}
+
+const toggleAutoDelete = () => {
+  autoDeleteEnabled.value = !autoDeleteEnabled.value
+  const status = autoDeleteEnabled.value ? 'włączone' : 'wyłączone'
+  showToast('success', `🔔 Auto-usuwanie ${status}`)
+  
+  // Zapisanie preferencji w localStorage
+  localStorage.setItem('ikigai_auto_delete', autoDeleteEnabled.value.toString())
+}
 </script> 

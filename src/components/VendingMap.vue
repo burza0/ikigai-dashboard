@@ -86,18 +86,55 @@
                      <!-- MAPA (NA ŚRODKU) -->
            <div class="lg:col-span-2">
              <div class="relative bg-gradient-to-br from-green-100 to-blue-100 dark:from-green-900/20 dark:to-blue-900/20 rounded-lg h-80 border border-gray-200 dark:border-gray-600">
-               <!-- Symulacja mapy Warszawy -->
-               <div class="absolute inset-0 flex items-center justify-center">
-                 <div class="text-center">
+               <!-- Symulacja mapy Warszawy (w tle) -->
+               <div class="absolute inset-0 flex items-center justify-center z-0">
+                 <div class="text-center opacity-50">
                    <div class="text-2xl mb-2">🗺️</div>
-                   <div class="text-sm text-gray-600 dark:text-gray-400">Mapa interaktywna</div>
+                   <div class="text-sm text-gray-600 dark:text-gray-400">Warszawa</div>
                  </div>
                </div>
                
-               <!-- Lokalizacje automatów na mapie -->
-               <div class="absolute top-6 left-12 w-3 h-3 bg-green-500 rounded-full border-2 border-white shadow-lg cursor-pointer hover:scale-110 transition-transform" title="IKIGAI Central"></div>
-               <div class="absolute bottom-16 right-20 w-3 h-3 bg-green-500 rounded-full border-2 border-white shadow-lg cursor-pointer hover:scale-110 transition-transform" title="IKIGAI Fitness"></div>
-               <div class="absolute top-20 right-6 w-3 h-3 bg-red-500 rounded-full border-2 border-white shadow-lg cursor-pointer hover:scale-110 transition-transform" title="IKIGAI Office - Serwis"></div>
+               <!-- Dynamiczne markery automatów -->
+               <div 
+                 v-for="(machine, index) in vendingMachines" 
+                 :key="machine.id"
+                 :style="getMarkerStyle(index)"
+                 class="absolute cursor-pointer transition-all duration-200 hover:scale-110 z-10"
+                 @click="selectMachine(machine)"
+                 :title="machine.name">
+                 
+                 <!-- Główny marker -->
+                 <div :class="[
+                   'w-8 h-8 rounded-full border-3 border-white shadow-lg flex items-center justify-center text-white font-bold text-lg relative',
+                   machine.status === 'online' ? 'bg-green-500' : 'bg-red-500'
+                 ]">
+                   {{ machine.status === 'online' ? '🏪' : '🔧' }}
+                   
+                   <!-- Etykieta z nazwą -->
+                   <div class="absolute -bottom-8 left-1/2 transform -translate-x-1/2 bg-black bg-opacity-75 text-white text-xs px-2 py-1 rounded whitespace-nowrap">
+                     {{ machine.name }}
+                   </div>
+                   
+                   <!-- Pulsujący efekt dla aktywnych automatów -->
+                   <div v-if="machine.status === 'online'" 
+                        class="absolute inset-0 bg-green-500 rounded-full animate-ping opacity-30"></div>
+                 </div>
+               </div>
+               
+               <!-- Marker użytkownika (jeśli lokalizacja jest dostępna) -->
+               <div v-if="userLocation" 
+                    :style="getUserMarkerStyle()"
+                    class="absolute cursor-pointer z-10">
+                 <div class="w-6 h-6 bg-blue-500 rounded-full border-2 border-white shadow-lg flex items-center justify-center relative">
+                   <div class="w-2 h-2 bg-white rounded-full"></div>
+                   <div class="absolute inset-0 bg-blue-500 rounded-full animate-ping opacity-40"></div>
+                   
+                   <!-- Etykieta -->
+                   <div class="absolute -bottom-6 left-1/2 transform -translate-x-1/2 bg-blue-600 text-white text-xs px-2 py-1 rounded whitespace-nowrap">
+                     Twoja lokalizacja
+                   </div>
+                 </div>
+               </div>
                
                <!-- Kontrolki mapy -->
                <div class="absolute top-4 right-4 flex flex-col space-y-2">
@@ -139,7 +176,6 @@
      <div class="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700">
        <div class="p-6 border-b border-gray-200 dark:border-gray-700">
          <h2 class="text-lg font-semibold text-gray-900 dark:text-white">🏪 Szczegóły automatów</h2>
-         <p class="text-gray-600 dark:text-gray-400">Pełne informacje o automatach IKIGAI - przewiń poziomo</p>
        </div>
        
        <div class="p-6">
@@ -188,14 +224,6 @@
                </div>
              </div>
            </div>
-         </div>
-         
-         <!-- Wskazówka przewijania -->
-         <div class="mt-4 flex items-center justify-center text-sm text-gray-500 dark:text-gray-400 bg-gray-50 dark:bg-gray-700 rounded-lg py-2">
-           <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4"></path>
-           </svg>
-           Przewiń w prawo aby zobaczyć więcej automatów →
          </div>
        </div>
      </div>
@@ -387,11 +415,13 @@ const getDistance = (machine) => {
 }
 
 const getMarkerPosition = (index) => {
-  // Symulowane pozycje markerów na mapie
+  // Pozycje dla wszystkich 5 automatów na mapie Warszawy
   const positions = [
-    { top: '40%', left: '50%' },  // IKIGAI Central
-    { top: '60%', left: '30%' },  // IKIGAI Fitness  
-    { top: '30%', left: '70%' }   // IKIGAI Office
+    { top: '40%', left: '50%' },  // IKIGAI Central - centrum
+    { top: '60%', left: '30%' },  // IKIGAI Fitness - południowy zachód
+    { top: '30%', left: '70%' },  // IKIGAI Office - północny wschód
+    { top: '25%', left: '45%' },  // IKIGAI University - północ centrum
+    { top: '70%', left: '60%' }   // IKIGAI Park - południe wschód
   ]
   return positions[index] || { top: '50%', left: '50%' }
 }
@@ -458,6 +488,22 @@ const getPaymentIcon = (method) => {
     'qr_code': '📱'
   }
   return icons[method] || '💰'
+}
+
+const getMarkerStyle = (index) => {
+  const position = getMarkerPosition(index)
+  return {
+    top: position.top,
+    left: position.left
+  }
+}
+
+const getUserMarkerStyle = () => {
+  const position = getUserMarkerPosition()
+  return {
+    top: position.top,
+    left: position.left
+  }
 }
 
 // Lifecycle

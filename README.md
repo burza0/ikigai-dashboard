@@ -1,4 +1,4 @@
-# 🌱 IKIGAI Dashboard
+# 🌱 IKIGAI Dashboard v2.1.0
 
 **Zdrowe automaty vendingowe z systemem QR i kompletnym workflow zamówień**
 
@@ -7,11 +7,11 @@
 IKIGAI Dashboard to kompletny system zarządzania zdrowymi automatami vendingowymi, zbudowany w oparciu o japońską filozofię **IKIGAI** (生き甲斐) - "powód istnienia". Aplikacja łączy zdrowe odżywianie z nowoczesną technologią, oferując:
 
 - 🥣 **Kreator Mieszanek** - komponowanie personalizowanych mieszanek
-- 🗺️ **Mapę Automatów** - lokalizacja z geolokalizacją i nawigacją
+- 🗺️ **Mapę Automatów** - 5 lokalizacji z interaktywną mapą i nawigacją
 - 🏆 **Program Lojalnościowy** - punkty, wyzwania, nagrody, poziomy
-- 📱 **Mobile QR App** - skanowanie, płatności mobilne, push notifications
+- 📱 **Mobile QR App** - zarządzanie kodami QR, skanowanie, płatności mobilne
 
-## 🚀 Główne Funkcje
+## 🚀 Główne Funkcje v2.1.0
 
 ### 1. 🥣 Kreator Mieszanek IKIGAI
 - **3-krokowy kreator**: Baza → Dodatki → Nazwa
@@ -20,15 +20,16 @@ IKIGAI Dashboard to kompletny system zarządzania zdrowymi automatami vendingowy
 - **Real-time podgląd**: wartości odżywcze, cena, etykiety dietetyczne
 - **Top 5 rekomendacji** z punktacją popularności i zdrowia
 - **Persystentne zapisywanie** w localStorage
-- **Generowanie QR kodów** do zamówień
+- **Automatyczne generowanie QR kodów** do zamówień
 
 ### 2. 🗺️ Mapa Automatów Vendingowych
-- **3 lokalizacje**: IKIGAI Central, Fitness, Office
+- **5 lokalizacji**: IKIGAI Central, Fitness, Office, University, Park
+- **Interaktywne markery** z nazwami automatów i statusem online/offline
+- **Pełnoekranowa mapa** z poziomym układem
+- **Filtry**: status, stan magazynu, przycisk "Znajdź mnie"
 - **Geolokalizacja użytkownika** z kalkulacją odległości
-- **Filtry**: według statusu (online/offline) i stanu magazynu
-- **Google Maps integracja** dla nawigacji
-- **Real-time status** i informacje o stocku
-- **Responsive layout** z tooltips
+- **Pozioma lista automatów** pod mapą z przewijaniem
+- **Real-time status** i informacje o stocku produktów
 
 ### 3. 🏆 Program Lojalnościowy
 - **4 poziomy awansu**: 🌱 Początkujący → 🌿 Entuzjasta → 🏆 Mistrz → 👑 Legenda
@@ -37,13 +38,62 @@ IKIGAI Dashboard to kompletny system zarządzania zdrowymi automatami vendingowy
 - **System punktów**: zdobywanie za zamówienia, wymiana na nagrody
 - **Animowane progress bary** i powiadomienia o awansach
 
-### 4. 📱 Mobile QR App
-- **QR Scanner**: symulowana kamera + ręczny input
+### 4. 📱 Mobile QR App - NOWE w v2.1.0!
+- **🎫 Moje QR** - zarządzanie wygenerowanymi kodami QR z zamówieniami
+- **Podgląd kodów QR** z nazwami, cenami i statusami (aktywny/użyty/wygasły)
+- **Akcje na kodach**: pełnoekranowy podgląd, udostępnianie, usuwanie
+- **QR Scanner**: symulowana kamera + ręczny input kodów
 - **3 metody płatności**: BLIK, NFC/Contactless, Karta płatnicza
 - **Payment Simulator**: kompletny workflow płatności mobilnych
 - **Push Notifications**: real-time o statusie zamówień i promocjach
 - **Order Tracking**: live progress (0-100%), szybkie zamówienia
-- **Historia transakcji** i skanów
+- **Zarządzanie**: masowe usuwanie wygasłych kodów, eksport historii
+- **Auto-usuwanie** z togglem on/off
+
+## 🔄 Complete User Journey v2.1.0
+
+1. **🥣 Komponowanie** mieszanki w Kreatorze
+2. **💾 Zapisywanie** trwale w localStorage
+3. **🎯 Zamówienie** → automatycznie tworzy Order + QR kod
+4. **🎫 Zarządzanie** kodami QR w zakładce "Moje QR"
+5. **📱 Skanowanie** QR w Mobile App lub udostępnianie
+6. **💳 Płatność** mobilna (BLIK/NFC/Card)
+7. **🏪 Przygotowanie** w jednym z 5 automatów
+8. **🔔 Notifications** o gotowym zamówieniu
+9. **🏆 Punkty lojalnościowe** za zakup
+10. **🗑️ Zarządzanie** używanymi i wygasłymi kodami
+
+## 🗺️ Nowe Lokalizacje Automatów
+
+### IKIGAI Central
+- **Lokalizacja**: Centrum Handlowe - Poziom 1
+- **Adres**: ul. Główna 123, Warszawa
+- **Status**: Online ✅
+- **Speciality**: Najpopularniejsze mieszanki
+
+### IKIGAI Fitness  
+- **Lokalizacja**: Siłownia FitZone
+- **Adres**: ul. Sportowa 45, Warszawa
+- **Status**: Online ✅
+- **Speciality**: Protein shakes i energy bowls
+
+### IKIGAI Office
+- **Lokalizacja**: Business Center Plaza
+- **Adres**: ul. Biznesowa 87, Warszawa  
+- **Status**: Serwis 🔧
+- **Speciality**: Healthy lunch options
+
+### IKIGAI University - NOWY!
+- **Lokalizacja**: Uniwersytet Warszawski (Biblioteka)
+- **Adres**: ul. Krakowskie Przedmieście 26/28, Warszawa
+- **Status**: Online ✅
+- **Speciality**: Student-friendly prices
+
+### IKIGAI Park - NOWY!
+- **Lokalizacja**: Park Łazienkowski (Wejście główne)
+- **Adres**: ul. Agrykoli 1, Warszawa
+- **Status**: Online ✅  
+- **Speciality**: Fresh fruit smoothies
 
 ## 🏗️ Architektura Techniczna
 
@@ -92,17 +142,6 @@ POST /api/loyalty/redeem
 GET  /api/version
 ```
 
-## 🔄 Complete User Journey
-
-1. **🥣 Komponowanie** mieszanki w Kreatorze
-2. **💾 Zapisywanie** trwale w localStorage
-3. **🎯 Zamówienie** → tworzy Order + QR kod (base64 PNG)
-4. **📱 Skanowanie** QR w Mobile App
-5. **💳 Płatność** mobilna (BLIK/NFC/Card)
-6. **🏪 Przygotowanie** w automacie vendingowym
-7. **🔔 Notifications** o gotowym zamówieniu
-8. **🏆 Punkty lojalnościowe** za zakup
-
 ## 🎨 Design & UX
 
 - **Mobile-first responsive design**
@@ -113,11 +152,45 @@ GET  /api/version
 - **Accessibility focus** z ARIA labels
 - **Progressive enhancement**
 
+## 📊 Funkcje Demo v2.1.0
+
+### 🎯 Testowanie QR Workflow
+1. Utwórz mieszankę w Kreatorze
+2. Kliknij "🎯 Zamów" → automatycznie generuje QR kod
+3. Przejdź do Mobile QR App → zakładka "🎫 Moje QR"
+4. Zarządzaj swoimi kodami QR (podgląd, udostępnianie, usuwanie)
+5. Przejdź do zakładki "📱 Skaner" 
+6. Zeskanuj kod (lub wpisz ręcznie)
+7. Symuluj płatność mobilną
+8. Śledź postęp zamówienia w real-time
+
+### 🗺️ Mapa 5 Automatów
+1. Przejdź do sekcji "🗺️ Mapa Automatów"
+2. Przetestuj filtry (Status, Stan magazynu)
+3. Kliknij "Znajdź mnie" dla geolokalizacji
+4. Eksploruj 5 lokalizacji: Central, Fitness, Office, University, Park
+5. Przewijaj poziomą listę automatów pod mapą
+6. Kliknij markery na mapie dla szczegółów
+
+### 🏆 Program Lojalnościowy
+1. Użyj "Symuluj zamówienie" w Loyalty Program
+2. Obserwuj przyznawanie punktów (15 pkt za 15zł)
+3. Awansuj poziomy (50 → 150 → 400 → 1000 pkt)
+4. Wymieniaj punkty na nagrody w sklepie
+
+### 📱 Mobile QR Management - NOWE!
+- **🎫 Moje QR** - zarządzaj wszystkimi kodami QR
+- **Bulk actions** - usuń wszystkie wygasłe kody jednym klikiem
+- **Export history** - pobierz historię zamówień  
+- **Auto-delete toggle** - automatyczne czyszczenie
+- **Push notifications** przy każdej akcji
+- **Payment simulator** z 3 metodami płatności
+
 ## 🚀 Instalacja i Uruchomienie
 
 ### 1. Klonowanie repozytorium
 ```bash
-git clone https://github.com/burza0/ikigai-dashboard.git
+git clone https://github.com/twoj-username/ikigai-dashboard.git
 cd ikigai-dashboard
 ```
 
@@ -125,7 +198,7 @@ cd ikigai-dashboard
 ```bash
 npm install
 npm run dev
-# Dostępne na http://localhost:5173
+# Dostępne na http://localhost:5174
 ```
 
 ### 3. Backend (Python Flask)
@@ -136,31 +209,22 @@ python3 start_server.py
 ```
 
 ### 4. Demo aplikacji
-- **Dashboard**: http://localhost:5173
-- **Demo automat**: http://localhost:5001/automat
+- **Dashboard**: http://localhost:5174
+- **Mobile QR App**: http://localhost:5174 → kliknij kafelek "Mobile QR App"
 - **API docs**: http://localhost:5001/api/version
 
-## 📊 Funkcje Demo
+### 5. Deployment na Heroku
+```bash
+# Build frontend
+npm run build
 
-### 🎯 Testowanie QR Workflow
-1. Utwórz mieszankę w Kreatorze
-2. Kliknij "🎯 Zamów" → generuje QR kod
-3. Przejdź do Mobile QR App
-4. Zeskanuj kod (lub wpisz ręcznie)
-5. Symuluj płatność mobilną
-6. Śledź postęp zamówienia
+# Deploy do Heroku
+git add .
+git commit -m "Release v2.1.0 - Enhanced Mobile QR & 5 Vending Locations"
+git push heroku main
 
-### 🏆 Program Lojalnościowy
-1. Użyj "Symuluj zamówienie" w Loyalty Program
-2. Obserwuj przyznawanie punktów (15 pkt za 15zł)
-3. Awansuj poziomy (50 → 150 → 400 → 1000 pkt)
-4. Wymieniaj punkty na nagrody w sklepie
-
-### 📱 Mobile Features
-- **Push notifications** przy każdej akcji
-- **Payment simulator** z 3 metodami płatności
-- **Real-time tracking** z progress bars
-- **Interactive maps** z geolokalizacją
+# Aplikacja dostępna na: https://ikigai-dashboard-dd738ec5fa6f.herokuapp.com/
+```
 
 ## 🌟 Zaawansowane Funkcje
 
