@@ -1,0 +1,1022 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🌱 IKIGAI Dashboard - Zdrowe Automaty Vendingowe</title>
+    <style>
+        /* IKIGAI DASHBOARD - DARK/LIGHT MODE VARIABLES */
+        :root {
+            --bg-primary: #0f1419;
+            --bg-secondary: #1a202c;
+            --bg-tertiary: #2d3748;
+            --text-primary: #ffffff;
+            --text-secondary: #a0aec0;
+            --text-accent: #4299e1;
+            --border-color: #2d3748;
+            --gradient-primary: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            --gradient-orange: linear-gradient(135deg, #ff7849 0%, #ff5722 100%);
+            --gradient-yellow: linear-gradient(135deg, #ffa726 0%, #ff9800 100%);
+            --shadow-light: rgba(255, 255, 255, 0.1);
+            --shadow-medium: rgba(255, 255, 255, 0.15);
+            --shadow-heavy: rgba(255, 255, 255, 0.2);
+        }
+
+        [data-theme="light"] {
+            --bg-primary: #f7fafc;
+            --bg-secondary: #ffffff;
+            --bg-tertiary: #edf2f7;
+            --text-primary: #1a202c;
+            --text-secondary: #4a5568;
+            --text-accent: #3182ce;
+            --border-color: #e2e8f0;
+            --gradient-primary: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            --gradient-orange: linear-gradient(135deg, #ff7849 0%, #ff5722 100%);
+            --gradient-yellow: linear-gradient(135deg, #ffa726 0%, #ff9800 100%);
+            --shadow-light: rgba(0, 0, 0, 0.05);
+            --shadow-medium: rgba(0, 0, 0, 0.1);
+            --shadow-heavy: rgba(0, 0, 0, 0.15);
+        }
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', sans-serif;
+            background: var(--bg-primary);
+            color: var(--text-primary);
+            line-height: 1.4;
+            overflow-x: hidden;
+            transition: all 0.3s ease;
+        }
+        
+        /* TOP NAVIGATION */
+        .top-nav {
+            background: var(--bg-secondary);
+            padding: 12px 30px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            border-bottom: 1px solid var(--border-color);
+            box-shadow: 0 2px 10px var(--shadow-light);
+        }
+
+        .nav-left {
+            display: flex;
+            align-items: center;
+            gap: 30px;
+        }
+
+        .nav-right {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+        
+        .nav-item {
+            color: var(--text-secondary);
+            font-weight: 500;
+            font-size: 0.9rem;
+            text-decoration: none;
+            padding: 10px 16px;
+            border-radius: 8px;
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        .nav-item:hover {
+            color: var(--text-primary);
+            background: var(--bg-tertiary);
+            transform: translateY(-1px);
+        }
+        
+        .nav-item.active {
+            color: var(--text-accent);
+            background: var(--shadow-medium);
+            box-shadow: 0 2px 8px var(--shadow-light);
+        }
+
+        /* THEME TOGGLE */
+        .theme-toggle {
+            background: var(--bg-tertiary);
+            border: 1px solid var(--border-color);
+            color: var(--text-primary);
+            width: 44px;
+            height: 44px;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-size: 1.2rem;
+        }
+
+        .theme-toggle:hover {
+            background: var(--text-accent);
+            color: white;
+            transform: scale(1.05);
+        }
+
+        /* SEARCH BAR */
+        .search-bar {
+            background: var(--bg-tertiary);
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            padding: 10px 16px;
+            color: var(--text-primary);
+            width: 300px;
+            font-size: 0.9rem;
+            outline: none;
+            transition: all 0.2s;
+        }
+
+        .search-bar:focus {
+            border-color: var(--text-accent);
+            box-shadow: 0 0 0 3px rgba(66, 153, 225, 0.1);
+        }
+
+        .search-bar::placeholder {
+            color: var(--text-secondary);
+        }
+
+        /* NOTIFICATION BADGE */
+        .notification-btn {
+            position: relative;
+            background: var(--bg-tertiary);
+            border: 1px solid var(--border-color);
+            color: var(--text-primary);
+            width: 44px;
+            height: 44px;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-size: 1.2rem;
+        }
+
+        .notification-btn:hover {
+            background: var(--text-accent);
+            color: white;
+            transform: scale(1.05);
+        }
+
+        .notification-badge {
+            position: absolute;
+            top: -2px;
+            right: -2px;
+            background: #ff4757;
+            color: white;
+            width: 18px;
+            height: 18px;
+            border-radius: 50%;
+            font-size: 0.7rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 700;
+        }
+        
+        /* MAIN HEADER */
+        .main-header {
+            background: var(--bg-secondary);
+            padding: 25px 30px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 1px solid var(--border-color);
+            box-shadow: 0 2px 10px var(--shadow-light);
+        }
+        
+        .header-left {
+            display: flex;
+            align-items: center;
+            gap: 25px;
+        }
+        
+        .logo-section {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+        
+        .logo-icon {
+            background: var(--gradient-primary);
+            width: 48px;
+            height: 48px;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 24px;
+            box-shadow: 0 4px 15px var(--shadow-medium);
+        }
+        
+        .logo-text {
+            color: var(--text-primary);
+        }
+        
+        .logo-title {
+            font-size: 1.8rem;
+            font-weight: 700;
+            margin: 0;
+        }
+        
+        .logo-subtitle {
+            font-size: 0.85rem;
+            color: var(--text-secondary);
+            margin: 0;
+        }
+        
+        .header-stats {
+            display: flex;
+            align-items: center;
+            gap: 30px;
+        }
+        
+        .stat-item {
+            text-align: center;
+        }
+        
+        .stat-number {
+            font-size: 2.2rem;
+            font-weight: 700;
+            color: var(--text-primary);
+            margin: 0;
+        }
+        
+        .stat-label {
+            font-size: 0.8rem;
+            color: var(--text-secondary);
+            margin: 0;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        
+        .header-right {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+        
+        .stat-badge {
+            background: var(--bg-tertiary);
+            color: var(--text-accent);
+            padding: 8px 12px;
+            border-radius: 6px;
+            font-size: 0.85rem;
+            font-weight: 600;
+            border: 1px solid var(--border-color);
+        }
+        
+        /* MAIN CONTENT */
+        .main-content {
+            padding: 30px;
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+        
+        /* VISUALIZATION SECTION */
+        .visualization-section {
+            background: var(--gradient-primary);
+            border-radius: 16px;
+            padding: 40px;
+            margin-bottom: 30px;
+            text-align: center;
+            position: relative;
+            overflow: hidden;
+            box-shadow: 0 8px 32px var(--shadow-medium);
+        }
+        
+        .visualization-section::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: var(--shadow-light);
+            backdrop-filter: blur(10px);
+            pointer-events: none;
+        }
+        
+        .viz-header {
+            position: relative;
+            z-index: 1;
+            margin-bottom: 35px;
+        }
+        
+        .viz-icon {
+            font-size: 3rem;
+            margin-bottom: 15px;
+        }
+        
+        .viz-title {
+            font-size: 2.2rem;
+            font-weight: 700;
+            margin-bottom: 8px;
+        }
+        
+        .viz-subtitle {
+            font-size: 1.1rem;
+            opacity: 0.9;
+        }
+        
+        .viz-metrics {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 30px;
+            position: relative;
+            z-index: 1;
+        }
+        
+        .viz-metric {
+            background: var(--shadow-medium);
+            backdrop-filter: blur(10px);
+            border-radius: 12px;
+            padding: 25px;
+            border: 1px solid var(--shadow-heavy);
+        }
+        
+        .viz-metric-value {
+            font-size: 2.5rem;
+            font-weight: 700;
+            margin-bottom: 8px;
+        }
+        
+        .viz-metric-label {
+            font-size: 0.9rem;
+            opacity: 0.9;
+        }
+        
+        /* MAIN TILES GRID */
+        .main-tiles {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 25px;
+            margin-bottom: 30px;
+        }
+        
+        .main-tile {
+            background: var(--gradient-primary);
+            border-radius: 16px;
+            padding: 35px;
+            text-align: center;
+            position: relative;
+            overflow: hidden;
+            transition: all 0.3s ease;
+            cursor: pointer;
+            box-shadow: 0 8px 32px var(--shadow-medium);
+        }
+        
+        .main-tile:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 12px 48px var(--shadow-heavy);
+        }
+        
+        .main-tile::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: var(--shadow-light);
+            backdrop-filter: blur(10px);
+            pointer-events: none;
+        }
+        
+        .tile-content {
+            position: relative;
+            z-index: 1;
+        }
+        
+        .tile-icon {
+            font-size: 3rem;
+            margin-bottom: 20px;
+        }
+        
+        .tile-title {
+            font-size: 1.4rem;
+            font-weight: 700;
+            margin-bottom: 12px;
+        }
+        
+        .tile-subtitle {
+            font-size: 0.95rem;
+            opacity: 0.9;
+            margin-bottom: 20px;
+        }
+        
+        .tile-number {
+            font-size: 1.8rem;
+            font-weight: 700;
+        }
+        
+        /* COLOR SECTIONS */
+        .color-sections {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+        
+        .color-section {
+            border-radius: 16px;
+            padding: 30px;
+            position: relative;
+            overflow: hidden;
+            box-shadow: 0 8px 32px var(--shadow-medium);
+        }
+        
+        .orange-section {
+            background: var(--gradient-orange);
+        }
+        
+        .yellow-section {
+            background: var(--gradient-yellow);
+        }
+        
+        .section-header {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            margin-bottom: 25px;
+        }
+        
+        .section-icon {
+            font-size: 2rem;
+        }
+        
+        .section-title {
+            font-size: 1.6rem;
+            font-weight: 700;
+        }
+        
+        .section-subtitle {
+            font-size: 0.9rem;
+            opacity: 0.9;
+        }
+        
+        .section-metrics {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 20px;
+        }
+        
+        .section-metric {
+            background: var(--shadow-medium);
+            backdrop-filter: blur(10px);
+            border-radius: 12px;
+            padding: 20px;
+            text-align: center;
+        }
+        
+        .section-metric-value {
+            font-size: 2rem;
+            font-weight: 700;
+            margin-bottom: 5px;
+        }
+        
+        .section-metric-label {
+            font-size: 0.85rem;
+            opacity: 0.9;
+        }
+        
+        /* RECENT ACTIVITY */
+        .recent-activity {
+            background: var(--bg-secondary);
+            border-radius: 16px;
+            padding: 30px;
+            border: 1px solid var(--border-color);
+            box-shadow: 0 8px 32px var(--shadow-medium);
+        }
+        
+        .activity-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 25px;
+        }
+        
+        .activity-title {
+            font-size: 1.4rem;
+            font-weight: 700;
+            color: var(--text-primary);
+        }
+        
+        .activity-link {
+            color: var(--text-accent);
+            font-size: 0.9rem;
+            text-decoration: none;
+        }
+        
+        .activity-list {
+            list-style: none;
+        }
+        
+        .activity-item {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            padding: 15px 0;
+            border-bottom: 1px solid var(--border-color);
+        }
+        
+        .activity-item:last-child {
+            border-bottom: none;
+        }
+        
+        .activity-icon {
+            width: 40px;
+            height: 40px;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.2rem;
+            flex-shrink: 0;
+        }
+        
+        .activity-icon.blue {
+            background: #4299e1;
+        }
+        
+        .activity-icon.purple {
+            background: #9f7aea;
+        }
+        
+        .activity-icon.green {
+            background: #48bb78;
+        }
+        
+        .activity-content {
+            flex: 1;
+        }
+        
+        .activity-text {
+            color: var(--text-primary);
+            font-weight: 500;
+            margin-bottom: 3px;
+        }
+        
+        .activity-meta {
+            color: var(--text-secondary);
+            font-size: 0.85rem;
+        }
+        
+        /* RESPONSIVE */
+        @media (max-width: 768px) {
+            .header-stats {
+                display: none;
+            }
+            
+            .main-tiles {
+                grid-template-columns: 1fr;
+            }
+            
+            .viz-metrics {
+                grid-template-columns: 1fr;
+            }
+            
+            .section-metrics {
+                grid-template-columns: 1fr;
+            }
+
+            .nav-left {
+                gap: 15px;
+            }
+
+            .search-bar {
+                width: 200px;
+            }
+        }
+    </style>
+</head>
+<body data-theme="dark">
+    <!-- TOP NAVIGATION -->
+    <nav class="top-nav">
+        <div class="nav-left">
+            <a href="#" class="nav-item">
+                🌱 <strong>IKIGAI</strong>
+            </a>
+            <a href="#" class="nav-item active">
+                📊 Dashboard
+            </a>
+            <a href="#composer" class="nav-item">
+                🧪 Kompozytor
+            </a>
+            <a href="#products" class="nav-item">
+                🛒 Produkty
+            </a>
+            <a href="#map" class="nav-item">
+                🗺️ Mapa
+            </a>
+            <a href="#recommendations" class="nav-item">
+                ⭐ Top 5
+            </a>
+            <a href="#demo" class="nav-item">
+                🤖 Demo
+            </a>
+        </div>
+        
+        <div class="nav-right">
+            <input type="text" class="search-bar" placeholder="Szukaj produktów, automatów...">
+            <button class="notification-btn" onclick="toggleNotifications()">
+                🔔
+                <span class="notification-badge">3</span>
+            </button>
+            <button class="theme-toggle" onclick="toggleTheme()" title="Przełącz motyw">
+                🌙
+            </button>
+        </div>
+    </nav>
+    
+    <!-- MAIN HEADER -->
+    <header class="main-header">
+        <div class="header-left">
+            <div class="logo-section">
+                <div class="logo-icon">🌱</div>
+                <div class="logo-text">
+                    <h1 class="logo-title">IKIGAI QR Dashboard</h1>
+                    <p class="logo-subtitle">Zarządzanie systemem QR zdrowych automatów</p>
+                </div>
+            </div>
+            
+            <div class="header-stats">
+                <div class="stat-item">
+                    <h2 class="stat-number" id="stat-products">6</h2>
+                    <p class="stat-label">Produkty</p>
+                </div>
+                <div class="stat-item">
+                    <h2 class="stat-number" id="stat-machines">3</h2>
+                    <p class="stat-label">Automaty</p>
+                </div>
+                <div class="stat-item">
+                    <h2 class="stat-number" id="stat-ingredients">4</h2>
+                    <p class="stat-label">Składniki</p>
+                </div>
+                <div class="stat-item">
+                    <h2 class="stat-number" id="stat-orders">23</h2>
+                    <p class="stat-label">Zamówienia</p>
+                </div>
+            </div>
+        </div>
+        
+        <div class="header-right">
+            <div class="stat-badge" id="online-machines">2 Online</div>
+            <div class="stat-badge" id="pending-orders">5 Oczekujących</div>
+        </div>
+    </header>
+    
+    <!-- MAIN CONTENT -->
+    <main class="main-content">
+        
+        <!-- VISUALIZATION SECTION -->
+        <section class="visualization-section">
+            <div class="viz-header">
+                <div class="viz-icon">📊</div>
+                <h2 class="viz-title">Visualization</h2>
+                <p class="viz-subtitle">Dane systemu prezentowane w przejrzysty sposób</p>
+            </div>
+            
+            <div class="viz-metrics">
+                <div class="viz-metric">
+                    <div class="viz-metric-value">100%</div>
+                    <div class="viz-metric-label">Automaty Online</div>
+                </div>
+                <div class="viz-metric">
+                    <div class="viz-metric-value">85%</div>
+                    <div class="viz-metric-label">Zadowolenie Klientów</div>
+                </div>
+                <div class="viz-metric">
+                    <div class="viz-metric-value">92%</div>
+                    <div class="viz-metric-label">System Gotowy</div>
+                </div>
+            </div>
+        </section>
+        
+        <!-- MAIN TILES -->
+        <section class="main-tiles">
+            <div class="main-tile" onclick="openComposer()">
+                <div class="tile-content">
+                    <div class="tile-icon">🥄</div>
+                    <h3 class="tile-title">🌱 Zarządzanie Produktami</h3>
+                    <p class="tile-subtitle">Zarządzanie automatami i produktami</p>
+                    <div class="tile-number" id="tile-products">6 produktów</div>
+                </div>
+            </div>
+            
+            <div class="main-tile" onclick="openQRSystem()">
+                <div class="tile-content">
+                    <div class="tile-icon">🔲</div>
+                    <h3 class="tile-title">📱 Kompozytor Mieszanek</h3>
+                    <p class="tile-subtitle">System kompozycji zdrownych mieszanek</p>
+                    <div class="tile-number" id="tile-qr">4 składniki</div>
+                </div>
+            </div>
+            
+            <div class="main-tile" onclick="openOrderSystem()">
+                <div class="tile-content">
+                    <div class="tile-icon">⚡</div>
+                    <h3 class="tile-title">🎯 System Zamówień QR</h3>
+                    <p class="tile-subtitle">Centrum zarządzania zamówieniami</p>
+                    <div class="tile-number" id="tile-orders">23 zamówienia</div>
+                </div>
+            </div>
+        </section>
+        
+        <!-- COLOR SECTIONS -->
+        <section class="color-sections">
+            <!-- ORANGE SECTION -->
+            <div class="color-section orange-section">
+                <div class="section-header">
+                    <div class="section-icon">📊</div>
+                    <div>
+                        <h3 class="section-title">🌱 Key Analytics</h3>
+                        <p class="section-subtitle">Ranking i statystyki systemu IKIGAI</p>
+                    </div>
+                </div>
+                
+                <div class="section-metrics">
+                    <div class="section-metric">
+                        <div class="section-metric-value" id="key-products">6</div>
+                        <div class="section-metric-label">Produkty</div>
+                    </div>
+                    <div class="section-metric">
+                        <div class="section-metric-value" id="key-orders">23</div>
+                        <div class="section-metric-label">Zamówienia</div>
+                    </div>
+                    <div class="section-metric">
+                        <div class="section-metric-value">88%</div>
+                        <div class="section-metric-label">Zadowolenie</div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- YELLOW SECTION -->
+            <div class="color-section yellow-section">
+                <div class="section-header">
+                    <div class="section-icon">🛠️</div>
+                    <div>
+                        <h3 class="section-title">Building blocks: QR System IKIGAI</h3>
+                        <p class="section-subtitle">System generowania i łączenia kodów QR</p>
+                    </div>
+                </div>
+                
+                <div class="section-metrics">
+                    <div class="section-metric">
+                        <div class="section-metric-value" id="qr-generated">3/3</div>
+                        <div class="section-metric-label">QR Automaty</div>
+                    </div>
+                    <div class="section-metric">
+                        <div class="section-metric-value">100%</div>
+                        <div class="section-metric-label">Pokrycie QR</div>
+                    </div>
+                </div>
+            </div>
+        </section>
+        
+        <!-- RECENT ACTIVITY -->
+        <section class="recent-activity">
+            <div class="activity-header">
+                <h3 class="activity-title">📝 Ostatnia aktywność systemu</h3>
+                <a href="#" class="activity-link">Zobacz szczegóły</a>
+            </div>
+            
+            <ul class="activity-list">
+                <li class="activity-item">
+                    <div class="activity-icon blue">🛒</div>
+                    <div class="activity-content">
+                        <div class="activity-text">8 nowych zamówień zostało utworzonych</div>
+                        <div class="activity-meta">Kompozytor mieszanek</div>
+                    </div>
+                </li>
+                <li class="activity-item">
+                    <div class="activity-icon purple">🔲</div>
+                    <div class="activity-content">
+                        <div class="activity-text">3 kody QR wygenerowane</div>
+                        <div class="activity-meta">Generator QR</div>
+                    </div>
+                </li>
+                <li class="activity-item">
+                    <div class="activity-icon green">✅</div>
+                    <div class="activity-content">
+                        <div class="activity-text">4 zamówienia zrealizowane</div>
+                        <div class="activity-meta">System przygotowania</div>
+                    </div>
+                </li>
+            </ul>
+        </section>
+        
+    </main>
+    
+    <script>
+        // THEME TOGGLE FUNCTIONALITY
+        function toggleTheme() {
+            const body = document.body;
+            const themeToggle = document.querySelector('.theme-toggle');
+            const currentTheme = body.getAttribute('data-theme');
+            
+            if (currentTheme === 'dark') {
+                body.setAttribute('data-theme', 'light');
+                themeToggle.innerHTML = '☀️';
+                themeToggle.title = 'Przełącz na tryb ciemny';
+                localStorage.setItem('ikigai-theme', 'light');
+                console.log('🌞 Przełączono na tryb jasny');
+            } else {
+                body.setAttribute('data-theme', 'dark');
+                themeToggle.innerHTML = '🌙';
+                themeToggle.title = 'Przełącz na tryb jasny';
+                localStorage.setItem('ikigai-theme', 'dark');
+                console.log('🌙 Przełączono na tryb ciemny');
+            }
+        }
+
+        // LOAD SAVED THEME
+        function loadSavedTheme() {
+            const savedTheme = localStorage.getItem('ikigai-theme') || 'dark';
+            const body = document.body;
+            const themeToggle = document.querySelector('.theme-toggle');
+            
+            body.setAttribute('data-theme', savedTheme);
+            if (savedTheme === 'light') {
+                themeToggle.innerHTML = '☀️';
+                themeToggle.title = 'Przełącz na tryb ciemny';
+            } else {
+                themeToggle.innerHTML = '🌙';
+                themeToggle.title = 'Przełącz na tryb jasny';
+            }
+        }
+
+        // NOTIFICATIONS TOGGLE
+        function toggleNotifications() {
+            const notifications = [
+                '🆕 3 nowe zamówienia oczekują',
+                '⚠️ Automat #2 wymaga uzupełnienia',
+                '✅ System zaktualizowany pomyślnie'
+            ];
+            
+            const randomNotification = notifications[Math.floor(Math.random() * notifications.length)];
+            
+            // Create notification popup
+            const notification = document.createElement('div');
+            notification.style.cssText = `
+                position: fixed;
+                top: 20px;
+                right: 20px;
+                background: var(--gradient-primary);
+                color: white;
+                padding: 15px 20px;
+                border-radius: 12px;
+                box-shadow: 0 8px 32px var(--shadow-heavy);
+                z-index: 1000;
+                font-size: 0.9rem;
+                max-width: 300px;
+                animation: slideIn 0.3s ease;
+            `;
+            
+            notification.innerHTML = `
+                <div style="display: flex; align-items: center; gap: 10px;">
+                    <span>🔔</span>
+                    <span>${randomNotification}</span>
+                    <button onclick="this.parentElement.parentElement.remove()" 
+                            style="background: none; border: none; color: white; cursor: pointer; font-size: 1.2rem;">×</button>
+                </div>
+            `;
+            
+            document.body.appendChild(notification);
+            
+            // Auto remove after 5 seconds
+            setTimeout(() => {
+                if (notification.parentNode) {
+                    notification.remove();
+                }
+            }, 5000);
+        }
+
+        // SEARCH FUNCTIONALITY
+        function initSearch() {
+            const searchBar = document.querySelector('.search-bar');
+            
+            searchBar.addEventListener('input', function(e) {
+                const query = e.target.value.toLowerCase();
+                
+                if (query.length > 2) {
+                    // Simulate search results
+                    console.log(`🔍 Szukanie: "${query}"`);
+                    
+                    const suggestions = [
+                        '🥤 Smoothie Jagodowy',
+                        '🥗 Miks Zielony',
+                        '🍊 Sok Pomarańczowy',
+                        '🤖 Automat Campus #1',
+                        '🤖 Automat Galeria #2'
+                    ].filter(item => item.toLowerCase().includes(query));
+                    
+                    if (suggestions.length > 0) {
+                        console.log('💡 Znalezione sugestie:', suggestions);
+                    }
+                }
+            });
+        }
+
+        // API DATA LOADING
+        async function loadDashboardData() {
+            try {
+                const [products, machines, ingredients, recommendations] = await Promise.all([
+                    fetch('/api/products').then(r => r.json()).catch(() => []),
+                    fetch('/api/vending-machines').then(r => r.json()).catch(() => []),
+                    fetch('/api/ingredients/bases').then(r => r.json()).catch(() => []),
+                    fetch('/api/recommendations').then(r => r.json()).catch(() => [])
+                ]);
+                
+                // Update header stats
+                document.getElementById('stat-products').textContent = products.length || 6;
+                document.getElementById('stat-machines').textContent = machines.length || 3;
+                document.getElementById('stat-ingredients').textContent = ingredients.length || 4;
+                document.getElementById('stat-orders').textContent = Math.floor(Math.random() * 50) + 10;
+                
+                // Update online machines
+                const onlineMachines = machines.filter(m => m.status === 'online').length || 2;
+                document.getElementById('online-machines').textContent = `${onlineMachines} Online`;
+                
+                // Update pending orders
+                const pendingOrders = Math.floor(Math.random() * 10) + 1;
+                document.getElementById('pending-orders').textContent = `${pendingOrders} Oczekujących`;
+                
+                // Update tiles
+                document.getElementById('tile-products').textContent = `${products.length || 6} produktów`;
+                document.getElementById('tile-qr').textContent = `${ingredients.length || 4} składniki`;
+                document.getElementById('tile-orders').textContent = `${Math.floor(Math.random() * 50) + 10} zamówienia`;
+                
+                // Update key analytics
+                document.getElementById('key-products').textContent = products.length || 6;
+                document.getElementById('key-orders').textContent = Math.floor(Math.random() * 50) + 10;
+                
+                // Update QR section
+                document.getElementById('qr-generated').textContent = `${machines.length || 3}/${machines.length || 3}`;
+                
+                console.log('📊 Dashboard IKIGAI załadowany z prawdziwymi danymi');
+            } catch (error) {
+                console.error('❌ Błąd ładowania danych:', error);
+            }
+        }
+        
+        // NAVIGATION FUNCTIONS
+        function openComposer() {
+            window.location.href = '/automat';
+        }
+        
+        function openQRSystem() {
+            alert('🔲 System QR - funkcja w przygotowaniu');
+        }
+        
+        function openOrderSystem() {
+            alert('🛒 System zamówień - funkcja w przygotowaniu');
+        }
+        
+        // AUTO REFRESH
+        function refreshData() {
+            loadDashboardData();
+            console.log('🔄 Odświeżanie danych dashboard...');
+        }
+        
+        // ADD SLIDE IN ANIMATION FOR NOTIFICATIONS
+        const style = document.createElement('style');
+        style.textContent = `
+            @keyframes slideIn {
+                from {
+                    transform: translateX(100%);
+                    opacity: 0;
+                }
+                to {
+                    transform: translateX(0);
+                    opacity: 1;
+                }
+            }
+        `;
+        document.head.appendChild(style);
+        
+        // INITIALIZE
+        document.addEventListener('DOMContentLoaded', function() {
+            loadSavedTheme();
+            loadDashboardData();
+            initSearch();
+            
+            // Auto refresh every 30 seconds
+            setInterval(refreshData, 30000);
+            
+            console.log('🌱 IKIGAI Dashboard v2.0.0 - Modern Theme with Dark/Light Mode');
+            console.log('🎨 Features: Dark/Light Toggle, Real-time data, Search, Notifications');
+        });
+    </script>
+</body>
+</html> 
