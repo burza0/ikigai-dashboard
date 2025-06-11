@@ -21,24 +21,6 @@
           <p class="text-orange-100 mt-2">Zbieraj punkty, podejmuj wyzwania, zyskuj nagrody za zdrowy styl życia</p>
         </div>
       </div>
-      <div class="grid grid-cols-1 md:grid-cols-4 gap-4 mt-6">
-        <div class="text-center bg-orange-600 bg-opacity-50 rounded-lg p-4">
-          <div class="text-2xl font-bold">{{ loyaltyProfile?.points || 0 }}</div>
-          <div class="text-sm text-orange-100">Punkty IKIGAI</div>
-        </div>
-        <div class="text-center bg-orange-600 bg-opacity-50 rounded-lg p-4">
-          <div class="text-2xl font-bold">{{ loyaltyProfile?.level || 1 }}</div>
-          <div class="text-sm text-orange-100">Poziom</div>
-        </div>
-        <div class="text-center bg-orange-600 bg-opacity-50 rounded-lg p-4">
-          <div class="text-2xl font-bold">{{ userChallenges.length }}</div>
-          <div class="text-sm text-orange-100">Aktywne wyzwania</div>
-        </div>
-        <div class="text-center bg-orange-600 bg-opacity-50 rounded-lg p-4">
-          <div class="text-2xl font-bold">{{ loyaltyProfile?.total_orders || 0 }}</div>
-          <div class="text-sm text-orange-100">Zamówienia</div>
-        </div>
-      </div>
     </div>
 
     <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">

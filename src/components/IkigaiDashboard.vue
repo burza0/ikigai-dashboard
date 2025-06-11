@@ -145,8 +145,7 @@
             </svg>
             <h3 class="text-xl font-semibold">🏆 Program Lojalnościowy</h3>
           </div>
-          <p class="text-lg text-orange-100 mb-6">Zbieraj punkty, podejmuj wyzwania, zyskuj nagrody</p>
-          <div class="text-3xl font-bold mb-3">5 wyzwań</div>
+          <p class="text-lg text-orange-100 mb-6">Zbieraj punkty, podejmuj wyzwania, zyskuj nagrody za zdrowy styl życia</p>
           <div class="text-orange-200 text-base">Zacznij zbierać punkty! 🌟</div>
         </div>
 
@@ -321,15 +320,39 @@ const fetchRecommendations = async () => {
 // Order recommendation function
 const orderRecommendation = async (recommendation: any) => {
   try {
-    // Create order for this recommendation
+    console.log('Ordering recommendation:', recommendation)
+    
+    // Create items array with base and toppings
+    const items = [
+      {
+        id: recommendation.base,
+        type: 'base',
+        quantity: 1
+      }
+    ]
+    
+    // Add toppings to items
+    if (recommendation.toppings && recommendation.toppings.length > 0) {
+      recommendation.toppings.forEach((topping: string) => {
+        items.push({
+          id: topping,
+          type: 'topping',
+          quantity: 1
+        })
+      })
+    }
+
+    // Create order for this recommendation with correct structure
     const orderData = {
       mixture_name: recommendation.name,
-      base_id: recommendation.base,
-      topping_ids: recommendation.toppings,
+      items: items,
       total_price: recommendation.total_price,
       user_id: 'web_user',
+      vending_machine_id: 'vm001', // Default to IKIGAI Central
       quick_order: true
     }
+
+    console.log('Sending order data:', orderData)
 
     const response = await fetch('http://localhost:5001/api/orders', {
       method: 'POST',
@@ -340,15 +363,16 @@ const orderRecommendation = async (recommendation: any) => {
     })
 
     const result = await response.json()
+    console.log('Order result:', result)
     
     if (result.success) {
       showAlert('success', `✨ Zamówiono ${recommendation.name}! ID: ${result.order.id.substring(0, 8)}...`)
     } else {
-      showAlert('error', 'Błąd podczas składania zamówienia')
+      showAlert('error', `Błąd: ${result.error || 'Nieznany błąd podczas składania zamówienia'}`)
     }
   } catch (error) {
     console.error('Error creating order:', error)
-    showAlert('error', 'Błąd podczas składania zamówienia')
+    showAlert('error', 'Błąd połączenia z serwerem')
   }
 }
 

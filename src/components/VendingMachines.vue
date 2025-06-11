@@ -86,39 +86,96 @@
       </div>
       
       <div class="p-6">
-        <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
-          <!-- IKIGAI Central -->
-          <div class="p-4 border border-gray-200 dark:border-gray-700 rounded-lg">
-            <div class="flex items-center justify-between mb-3">
-              <h3 class="font-semibold text-gray-900 dark:text-white">IKIGAI Central</h3>
-              <span class="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200">
-                🟢 Online
-              </span>
+        <!-- Poziomy scroll kontener -->
+        <div class="overflow-x-auto">
+          <div class="flex gap-4 pb-4" style="min-width: max-content;">
+            <!-- IKIGAI Central -->
+            <div class="p-6 border border-gray-200 dark:border-gray-700 rounded-lg min-w-80 bg-gradient-to-br from-green-50 to-green-100 dark:from-green-900/20 dark:to-green-800/20 border-green-200 dark:border-green-700">
+              <div class="flex items-center justify-between mb-4">
+                <h3 class="font-semibold text-gray-900 dark:text-white text-lg">IKIGAI Central</h3>
+                <span class="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200">
+                  🟢 Online
+                </span>
+              </div>
+              <p class="text-sm text-gray-600 dark:text-gray-400 mb-3">Centrum Handlowe - Poziom 1</p>
+              <div class="text-xs text-gray-500 dark:text-gray-500">ul. Główna 123, Warszawa</div>
+              <div class="mt-4 flex items-center justify-between">
+                <div class="text-sm text-green-600 dark:text-green-400 font-medium">Stock: 42/50</div>
+                <div class="text-xs text-gray-500 dark:text-gray-500">06:00-22:00</div>
+              </div>
             </div>
-            <p class="text-sm text-gray-600 dark:text-gray-400">Centrum Handlowe - Poziom 1</p>
-          </div>
 
-          <!-- IKIGAI Fitness -->
-          <div class="p-4 border border-gray-200 dark:border-gray-700 rounded-lg">
-            <div class="flex items-center justify-between mb-3">
-              <h3 class="font-semibold text-gray-900 dark:text-white">IKIGAI Fitness</h3>
-              <span class="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200">
-                🟢 Online
-              </span>
+            <!-- IKIGAI Fitness -->
+            <div class="p-6 border border-gray-200 dark:border-gray-700 rounded-lg min-w-80 bg-gradient-to-br from-blue-50 to-blue-100 dark:from-blue-900/20 dark:to-blue-800/20 border-blue-200 dark:border-blue-700">
+              <div class="flex items-center justify-between mb-4">
+                <h3 class="font-semibold text-gray-900 dark:text-white text-lg">IKIGAI Fitness</h3>
+                <span class="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200">
+                  🟢 Online
+                </span>
+              </div>
+              <p class="text-sm text-gray-600 dark:text-gray-400 mb-3">Siłownia FitZone</p>
+              <div class="text-xs text-gray-500 dark:text-gray-500">ul. Sportowa 45, Warszawa</div>
+              <div class="mt-4 flex items-center justify-between">
+                <div class="text-sm text-green-600 dark:text-green-400 font-medium">Stock: 28/30</div>
+                <div class="text-xs text-gray-500 dark:text-gray-500">05:00-23:00</div>
+              </div>
             </div>
-            <p class="text-sm text-gray-600 dark:text-gray-400">Siłownia FitZone</p>
-          </div>
 
-          <!-- IKIGAI Office -->
-          <div class="p-4 border border-gray-200 dark:border-gray-700 rounded-lg">
-            <div class="flex items-center justify-between mb-3">
-              <h3 class="font-semibold text-gray-900 dark:text-white">IKIGAI Office</h3>
-              <span class="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-orange-100 text-orange-800 dark:bg-orange-900 dark:text-orange-200">
-                🔧 Konserwacja
-              </span>
+            <!-- IKIGAI Office -->
+            <div class="p-6 border border-gray-200 dark:border-gray-700 rounded-lg min-w-80 bg-gradient-to-br from-orange-50 to-orange-100 dark:from-orange-900/20 dark:to-orange-800/20 border-orange-200 dark:border-orange-700">
+              <div class="flex items-center justify-between mb-4">
+                <h3 class="font-semibold text-gray-900 dark:text-white text-lg">IKIGAI Office</h3>
+                <span class="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-orange-100 text-orange-800 dark:bg-orange-900 dark:text-orange-200">
+                  🔧 Serwis
+                </span>
+              </div>
+              <p class="text-sm text-gray-600 dark:text-gray-400 mb-3">Biurowiec Alpha Tower</p>
+              <div class="text-xs text-gray-500 dark:text-gray-500">ul. Biznesowa 78, Warszawa</div>
+              <div class="mt-4 flex items-center justify-between">
+                <div class="text-sm text-orange-600 dark:text-orange-400 font-medium">Stock: 0/40</div>
+                <div class="text-xs text-gray-500 dark:text-gray-500">07:00-19:00</div>
+              </div>
             </div>
-            <p class="text-sm text-gray-600 dark:text-gray-400">Biurowiec Alpha Tower</p>
+
+            <!-- Więcej automatów dla demonstracji przewijania -->
+            <div class="p-6 border border-gray-200 dark:border-gray-700 rounded-lg min-w-80 bg-gradient-to-br from-purple-50 to-purple-100 dark:from-purple-900/20 dark:to-purple-800/20 border-purple-200 dark:border-purple-700">
+              <div class="flex items-center justify-between mb-4">
+                <h3 class="font-semibold text-gray-900 dark:text-white text-lg">IKIGAI Mall</h3>
+                <span class="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200">
+                  🟢 Online
+                </span>
+              </div>
+              <p class="text-sm text-gray-600 dark:text-gray-400 mb-3">Galeria Centrum</p>
+              <div class="text-xs text-gray-500 dark:text-gray-500">ul. Handlowa 12, Warszawa</div>
+              <div class="mt-4 flex items-center justify-between">
+                <div class="text-sm text-green-600 dark:text-green-400 font-medium">Stock: 35/50</div>
+                <div class="text-xs text-gray-500 dark:text-gray-500">10:00-22:00</div>
+              </div>
+            </div>
+
+            <div class="p-6 border border-gray-200 dark:border-gray-700 rounded-lg min-w-80 bg-gradient-to-br from-teal-50 to-teal-100 dark:from-teal-900/20 dark:to-teal-800/20 border-teal-200 dark:border-teal-700">
+              <div class="flex items-center justify-between mb-4">
+                <h3 class="font-semibold text-gray-900 dark:text-white text-lg">IKIGAI University</h3>
+                <span class="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200">
+                  🟢 Online
+                </span>
+              </div>
+              <p class="text-sm text-gray-600 dark:text-gray-400 mb-3">Kampus Główny</p>
+              <div class="text-xs text-gray-500 dark:text-gray-500">ul. Uniwersytecka 1, Warszawa</div>
+              <div class="mt-4 flex items-center justify-between">
+                <div class="text-sm text-green-600 dark:text-green-400 font-medium">Stock: 18/30</div>
+                <div class="text-xs text-gray-500 dark:text-gray-500">06:00-20:00</div>
+              </div>
+            </div>
           </div>
+        </div>
+        
+        <!-- Wskazówka przewijania -->
+        <div class="mt-4 flex items-center justify-center text-sm text-gray-500 dark:text-gray-400">
+          <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4"></path>
+          </svg>
+          Przewiń w prawo aby zobaczyć więcej automatów
         </div>
       </div>
     </div>

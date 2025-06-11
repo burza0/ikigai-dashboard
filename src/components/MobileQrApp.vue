@@ -27,23 +27,7 @@
 
     <!-- Main Content -->
     <div class="max-w-md mx-auto px-4 pb-20">
-      <!-- Quick Stats Card -->
-      <div class="bg-white/10 backdrop-blur-md rounded-2xl p-6 mb-6 border border-white/20">
-        <div class="grid grid-cols-3 gap-4 text-center">
-          <div>
-            <div class="text-2xl font-bold text-white">{{ loyaltyPoints }}</div>
-            <div class="text-sm text-white/70">Punkty</div>
-          </div>
-          <div>
-            <div class="text-2xl font-bold text-green-400">{{ completedOrders }}</div>
-            <div class="text-sm text-white/70">Zamówienia</div>
-          </div>
-          <div>
-            <div class="text-2xl font-bold text-blue-400">{{ currentLevel }}</div>
-            <div class="text-sm text-white/70">Poziom</div>
-          </div>
-        </div>
-      </div>
+
 
       <!-- Action Tabs -->
       <div class="flex bg-white/10 backdrop-blur-md rounded-xl p-1 mb-6">

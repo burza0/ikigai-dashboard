@@ -21,24 +21,6 @@
           <p class="text-purple-100 mt-2">Skomponuj swoją idealną mieszankę szczęścia</p>
         </div>
       </div>
-      <div class="grid grid-cols-1 md:grid-cols-4 gap-4 mt-6">
-        <div class="text-center">
-          <div class="text-2xl mb-2">🎯</div>
-          <div class="text-sm text-purple-100">Co kochasz</div>
-        </div>
-        <div class="text-center">
-          <div class="text-2xl mb-2">💪</div>
-          <div class="text-sm text-purple-100">W czym jesteś dobry</div>
-        </div>
-        <div class="text-center">
-          <div class="text-2xl mb-2">🌍</div>
-          <div class="text-sm text-purple-100">Czego potrzebuje świat</div>
-        </div>
-        <div class="text-center">
-          <div class="text-2xl mb-2">💰</div>
-          <div class="text-sm text-purple-100">Za co możesz otrzymać wynagrodzenie</div>
-        </div>
-      </div>
     </div>
 
     <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
@@ -279,8 +261,15 @@
             </button>
             <button v-if="!mixture.order_id" 
                     @click="createOrderFromMixture(mixture)" 
-                    class="flex-1 bg-orange-100 hover:bg-orange-200 text-orange-700 py-2 px-3 rounded text-sm font-medium transition-all duration-200">
-              🎯 Zamów
+                    :disabled="isCreatingOrder"
+                    :class="[
+                      'flex-1 py-2 px-3 rounded text-sm font-medium transition-all duration-200',
+                      isCreatingOrder 
+                        ? 'bg-gray-100 text-gray-500 cursor-not-allowed' 
+                        : 'bg-orange-100 hover:bg-orange-200 text-orange-700'
+                    ]">
+              <span v-if="isCreatingOrder">⏳ Tworzę...</span>
+              <span v-else>🎯 Zamów</span>
             </button>
             <button v-else
                     @click="showQrCode(mixture)" 
@@ -380,6 +369,7 @@ const selectedBase = ref(null)
 const selectedToppings = ref([])
 const mixtureName = ref('')
 const isCreating = ref(false)
+const isCreatingOrder = ref(false)
 const successMessage = ref('')
 const savedMixtures = ref([])
 const showQrModal = ref(false)
@@ -474,13 +464,16 @@ const createMixture = async () => {
   isCreating.value = true
   
   try {
+    // Generuj unikalne ID
+    const uniqueId = `mixture_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`
+    
     // Zapisz mieszankę lokalnie
     const mixture = {
-      id: Date.now().toString(),
+      id: uniqueId,
       name: mixtureName.value || 'Moja Mieszanka',
       description: `${selectedBase.value.name} + ${selectedToppings.value.length} dodatków`,
-      base: selectedBase.value,
-      toppings: [...selectedToppings.value],
+      base: { ...selectedBase.value }, // Skopiuj obiekt żeby uniknąć referencji
+      toppings: selectedToppings.value.map(t => ({ ...t })), // Skopiuj tablicę obiektów
       total_price: totalPrice.value,
       total_kcal: totalNutrition.value.kcal,
       created_at: new Date().toISOString(),
@@ -488,8 +481,11 @@ const createMixture = async () => {
       qr_code: null
     }
     
-    // Dodaj do zapisanych mieszanek
-    savedMixtures.value.unshift(mixture)
+    console.log('Zapisuję nową mieszankę:', mixture.name, 'ID:', mixture.id)
+    
+    // Stwórz kopię aktualnych mieszanek i dodaj nową na początku
+    const updatedMixtures = [mixture, ...savedMixtures.value]
+    savedMixtures.value = updatedMixtures
     saveMixturesToLocalStorage()
     
     successMessage.value = `Mieszanka "${mixture.name}" została zapisana! 🎉 Możesz teraz utworzyć dla niej zamówienie.`
@@ -504,44 +500,73 @@ const createMixture = async () => {
     
   } catch (error) {
     console.error('Błąd zapisywania mieszanki:', error)
+    successMessage.value = 'Błąd podczas zapisywania mieszanki. Spróbuj ponownie.'
+    setTimeout(() => successMessage.value = '', 3000)
   } finally {
     isCreating.value = false
   }
 }
 
 const createOrderFromMixture = async (mixture) => {
+  // Zabezpieczenie przed wielokrotnym kliknięciem
+  if (isCreatingOrder.value) {
+    console.log('Zamówienie już w trakcie tworzenia...')
+    return
+  }
+
+  isCreatingOrder.value = true
+  
   try {
+    console.log('🎯 Rozpoczynam tworzenie zamówienia dla mieszanki:', mixture.name)
+    console.log('📦 Składniki:', {
+      base: mixture.base.name,
+      toppings: mixture.toppings.map(t => t.name),
+      total_price: mixture.total_price
+    })
+    
+    successMessage.value = `⏳ Tworzę zamówienie dla "${mixture.name}"...`
+    
     // Utwórz zamówienie za pomocą API
+    const orderPayload = {
+      mixture_name: mixture.name,
+      user_id: 'web_user',
+      vending_machine_id: 'vm001',
+      items: [
+        {
+          id: mixture.base.id,
+          type: 'base',
+          quantity: 1
+        },
+        ...mixture.toppings.map(topping => ({
+          id: topping.id,
+          type: 'topping',
+          quantity: 1
+        }))
+      ],
+      total_price: mixture.total_price,
+      quick_order: true
+    }
+    
+    console.log('📤 Wysyłam dane zamówienia:', orderPayload)
+    
     const orderResponse = await fetch('http://localhost:5001/api/orders', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json'
       },
-      body: JSON.stringify({
-        user_id: 'web_user',
-        vending_machine_id: 'ikigai_central',
-        items: [
-          {
-            id: mixture.base.id,
-            name: mixture.base.name,
-            type: 'base',
-            price: mixture.base.price,
-            quantity: 1
-          },
-          ...mixture.toppings.map(topping => ({
-            id: topping.id,
-            name: topping.name,
-            type: 'topping',
-            price: topping.price,
-            quantity: 1
-          }))
-        ]
-      })
+      body: JSON.stringify(orderPayload)
     })
     
+    if (!orderResponse.ok) {
+      throw new Error(`HTTP ${orderResponse.status}: ${orderResponse.statusText}`)
+    }
+    
     const orderData = await orderResponse.json()
+    console.log('📥 Odpowiedź API zamówienia:', orderData)
     
     if (orderData.success) {
+      successMessage.value = `⚡ Generuję QR kod dla "${mixture.name}"...`
+      
       // Wygeneruj QR kod dla zamówienia
       const qrResponse = await fetch(`http://localhost:5001/api/orders/${orderData.order.id}/generate-qr`, {
         method: 'POST',
@@ -550,24 +575,58 @@ const createOrderFromMixture = async (mixture) => {
         }
       })
       
+      if (!qrResponse.ok) {
+        throw new Error(`HTTP QR ${qrResponse.status}: ${qrResponse.statusText}`)
+      }
+      
       const qrData = await qrResponse.json()
+      console.log('📥 Odpowiedź API QR:', qrData.success ? 'Sukces!' : qrData.error)
       
       if (qrData.success) {
-        // Zaktualizuj mieszankę z QR kodem
-        const mixtureIndex = savedMixtures.value.findIndex(m => m.id === mixture.id)
+        // Stwórz kopię aktualnych mieszanek
+        const updatedMixtures = [...savedMixtures.value]
+        
+        // Znajdź i zaktualizuj konkretną mieszankę
+        const mixtureIndex = updatedMixtures.findIndex(m => m.id === mixture.id)
         if (mixtureIndex !== -1) {
-          savedMixtures.value[mixtureIndex].order_id = orderData.order.id
-          savedMixtures.value[mixtureIndex].qr_code = qrData.qr_code
+          updatedMixtures[mixtureIndex] = {
+            ...updatedMixtures[mixtureIndex],
+            order_id: orderData.order.id,
+            qr_code: qrData.qr_code
+          }
+          
+          // Zaktualizuj stan i zapisz do localStorage
+          savedMixtures.value = updatedMixtures
           saveMixturesToLocalStorage()
+          
+          console.log('✅ Mieszanka zaktualizowana z QR kodem:', orderData.order.id.slice(-8))
         }
         
-        successMessage.value = `Zamówienie dla "${mixture.name}" utworzone! QR kod jest gotowy do skanowania. 📱`
-        setTimeout(() => successMessage.value = '', 3000)
+        successMessage.value = `🎉 Zamówienie dla "${mixture.name}" utworzone! QR kod jest gotowy do skanowania. 📱`
+        setTimeout(() => successMessage.value = '', 5000)
+      } else {
+        console.error('❌ Błąd generowania QR kodu:', qrData.error)
+        successMessage.value = `❌ Błąd generowania QR kodu: ${qrData.error || 'Nieznany błąd'}`
+        setTimeout(() => successMessage.value = '', 5000)
       }
+    } else {
+      console.error('❌ Błąd tworzenia zamówienia:', orderData.error)
+      successMessage.value = `❌ Błąd tworzenia zamówienia: ${orderData.error || 'Nieznany błąd'}`
+      setTimeout(() => successMessage.value = '', 5000)
     }
     
   } catch (error) {
-    console.error('Błąd tworzenia zamówienia:', error)
+    console.error('❌ Błąd tworzenia zamówienia:', error)
+    
+    if (error.message.includes('Failed to fetch')) {
+      successMessage.value = '❌ Błąd połączenia z serwerem. Sprawdź czy backend działa na porcie 5001.'
+    } else {
+      successMessage.value = `❌ Błąd: ${error.message}`
+    }
+    
+    setTimeout(() => successMessage.value = '', 5000)
+  } finally {
+    isCreatingOrder.value = false
   }
 }
 
@@ -618,17 +677,50 @@ const shareQrCode = async () => {
 }
 
 const saveMixturesToLocalStorage = () => {
-  localStorage.setItem('ikigai_mixtures', JSON.stringify(savedMixtures.value))
+  try {
+    console.log('Zapisuję mieszanki do localStorage:', savedMixtures.value.length)
+    const mixturesData = savedMixtures.value.map(mixture => ({
+      ...mixture,
+      // Upewnij się, że wszystkie ważne pola są zachowane
+      id: mixture.id,
+      name: mixture.name,
+      order_id: mixture.order_id || null,
+      qr_code: mixture.qr_code || null,
+      created_at: mixture.created_at
+    }))
+    localStorage.setItem('ikigai_mixtures', JSON.stringify(mixturesData))
+    console.log('Mieszanki zapisane pomyślnie')
+  } catch (error) {
+    console.error('Błąd zapisywania mieszanek do localStorage:', error)
+  }
 }
 
 const loadMixturesFromLocalStorage = () => {
   try {
     const saved = localStorage.getItem('ikigai_mixtures')
     if (saved) {
-      savedMixtures.value = JSON.parse(saved)
+      const parsedMixtures = JSON.parse(saved)
+      console.log('Ładuję mieszanki z localStorage:', parsedMixtures.length)
+      
+      // Sprawdź czy każda mieszanka ma wszystkie wymagane pola
+      savedMixtures.value = parsedMixtures.map(mixture => ({
+        ...mixture,
+        // Upewnij się, że ID istnieje
+        id: mixture.id || Date.now().toString() + Math.random(),
+        // Zachowaj kody QR i order_id jeśli istnieją
+        order_id: mixture.order_id || null,
+        qr_code: mixture.qr_code || null
+      }))
+      
+      console.log('Mieszanki załadowane:', savedMixtures.value.map(m => ({ 
+        name: m.name, 
+        hasQR: !!m.qr_code, 
+        orderId: m.order_id?.slice(-8) 
+      })))
     }
   } catch (error) {
     console.error('Błąd ładowania zapisanych mieszanek:', error)
+    savedMixtures.value = []
   }
 }
 
@@ -660,10 +752,54 @@ const loadIngredients = async () => {
   }
 }
 
+// Debug functions
+const debugMixtures = () => {
+  console.log('=== DEBUG MIESZANEK ===')
+  console.log('Liczba mieszanek:', savedMixtures.value.length)
+  savedMixtures.value.forEach((mixture, index) => {
+    console.log(`${index + 1}. ${mixture.name}:`, {
+      id: mixture.id,
+      hasOrderId: !!mixture.order_id,
+      hasQRCode: !!mixture.qr_code,
+      orderId: mixture.order_id?.slice(-8),
+      created: mixture.created_at
+    })
+  })
+  console.log('localStorage content:', localStorage.getItem('ikigai_mixtures'))
+}
+
+const clearAllMixtures = () => {
+  if (confirm('Czy na pewno chcesz usunąć wszystkie zapisane mieszanki?')) {
+    savedMixtures.value = []
+    localStorage.removeItem('ikigai_mixtures')
+    console.log('Wszystkie mieszanki zostały usunięte')
+  }
+}
+
+// Expose debug functions globally (tylko do debugowania)
+if (typeof window !== 'undefined') {
+  window.debugMixtures = debugMixtures
+  window.clearAllMixtures = clearAllMixtures
+  window.testOrderCreation = (mixtureIndex = 0) => {
+    if (savedMixtures.value[mixtureIndex]) {
+      console.log('🧪 Test tworzenia zamówienia dla:', savedMixtures.value[mixtureIndex].name)
+      createOrderFromMixture(savedMixtures.value[mixtureIndex])
+    } else {
+      console.log('❌ Brak mieszanki o indeksie', mixtureIndex)
+    }
+  }
+}
+
 // Lifecycle
 onMounted(() => {
   loadIngredients()
   loadMixturesFromLocalStorage()
+  
+  // Debug info przy załadowaniu
+  setTimeout(() => {
+    console.log('=== STAN PO ZAŁADOWANIU ===')
+    debugMixtures()
+  }, 1000)
 })
 </script>
 
