@@ -37,217 +37,170 @@
       </div>
     </div>
 
-    <div class="grid grid-cols-1 lg:grid-cols-4 gap-6">
+    <!-- MAPA NA GÓRZE -->
+    <div class="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700">
+      <div class="p-6 border-b border-gray-200 dark:border-gray-700">
+        <h2 class="text-lg font-semibold text-gray-900 dark:text-white">🗺️ Mapa interaktywna</h2>
+        <p class="text-gray-600 dark:text-gray-400">Znajdź najbliższy automat IKIGAI w Warszawie</p>
+      </div>
       
-      <!-- LEWA KOLUMNA: Lista automatów i filtry -->
-      <div class="lg:col-span-1 space-y-6">
-        
-        <!-- Filtry -->
-        <div class="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 p-6">
-          <h3 class="text-lg font-semibold text-gray-900 dark:text-white mb-4">🔍 Filtry</h3>
-          
-          <!-- Status Filter -->
-          <div class="mb-4">
-            <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Status</label>
-            <select v-model="statusFilter" class="w-full p-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white">
-              <option value="all">Wszystkie</option>
-              <option value="online">Online</option>
-              <option value="maintenance">Serwis</option>
-            </select>
+      <div class="p-6">
+        <div class="grid grid-cols-1 lg:grid-cols-4 gap-6">
+          <!-- FILTRY (PO LEWEJ) -->
+          <div class="lg:col-span-1">
+            <div class="space-y-4">
+              <div>
+                <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">🔍 Filtry</label>
+                
+                <div class="space-y-3">
+                  <div>
+                    <label class="block text-xs text-gray-600 dark:text-gray-400 mb-1">Status</label>
+                    <select v-model="statusFilter" class="w-full px-3 py-2 text-sm border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white">
+                      <option value="all">Wszystkie</option>
+                      <option value="online">Online</option>
+                      <option value="maintenance">Serwis</option>
+                    </select>
+                  </div>
+                  
+                  <div>
+                    <label class="block text-xs text-gray-600 dark:text-gray-400 mb-1">Stan magazynu</label>
+                    <select v-model="stockFilter" class="w-full px-3 py-2 text-sm border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white">
+                      <option value="all">Wszystkie</option>
+                      <option value="available">Dostępne produkty</option>
+                      <option value="low">Niski stan</option>
+                    </select>
+                  </div>
+                  
+                  <button @click="getUserLocation" 
+                          :disabled="gettingLocation"
+                          class="w-full mt-4 px-4 py-2 bg-blue-600 text-white text-sm rounded-lg hover:bg-blue-700 transition-colors disabled:opacity-50">
+                    <span v-if="gettingLocation">📍 Lokalizuję...</span>
+                    <span v-else-if="userLocation">📍 Moja lokalizacja</span>
+                    <span v-else>🔍 Znajdź mnie</span>
+                  </button>
+                </div>
+              </div>
+            </div>
           </div>
           
-          <!-- Stock Filter -->
-          <div class="mb-4">
-            <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Stan magazynu</label>
-            <select v-model="stockFilter" class="w-full p-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white">
-              <option value="all">Wszystkie</option>
-              <option value="available">Dostępne produkty</option>
-              <option value="low">Niski stan</option>
-            </select>
-          </div>
-          
-          <!-- User Location -->
-          <div class="mb-4">
-            <button @click="getUserLocation" 
-                    :disabled="gettingLocation"
-                    class="w-full bg-blue-500 hover:bg-blue-600 text-white py-2 px-4 rounded-lg transition-colors duration-200 disabled:opacity-50">
-              <span v-if="gettingLocation">📍 Lokalizuję...</span>
-              <span v-else-if="userLocation">📍 Moja lokalizacja</span>
-              <span v-else>📍 Znajdź mnie</span>
-            </button>
-          </div>
-        </div>
-        
-        <!-- Lista automatów -->
-        <div class="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 p-6">
-          <h3 class="text-lg font-semibold text-gray-900 dark:text-white mb-4">🏪 Automaty</h3>
-          
-          <div class="space-y-3">
-            <div v-for="machine in filteredMachines" :key="machine.id"
-                 @click="selectMachine(machine)"
-                 :class="[
-                   'cursor-pointer p-4 rounded-lg border-2 transition-all duration-200',
-                   selectedMachine?.id === machine.id 
-                     ? 'border-green-500 bg-green-50 dark:bg-green-900/20' 
-                     : 'border-gray-200 dark:border-gray-600 hover:border-green-300 hover:bg-gray-50 dark:hover:bg-gray-700'
+                     <!-- MAPA (NA ŚRODKU) -->
+           <div class="lg:col-span-2">
+             <div class="relative bg-gradient-to-br from-green-100 to-blue-100 dark:from-green-900/20 dark:to-blue-900/20 rounded-lg h-80 border border-gray-200 dark:border-gray-600">
+               <!-- Symulacja mapy Warszawy -->
+               <div class="absolute inset-0 flex items-center justify-center">
+                 <div class="text-center">
+                   <div class="text-2xl mb-2">🗺️</div>
+                   <div class="text-sm text-gray-600 dark:text-gray-400">Mapa interaktywna</div>
+                 </div>
+               </div>
+               
+               <!-- Lokalizacje automatów na mapie -->
+               <div class="absolute top-6 left-12 w-3 h-3 bg-green-500 rounded-full border-2 border-white shadow-lg cursor-pointer hover:scale-110 transition-transform" title="IKIGAI Central"></div>
+               <div class="absolute bottom-16 right-20 w-3 h-3 bg-green-500 rounded-full border-2 border-white shadow-lg cursor-pointer hover:scale-110 transition-transform" title="IKIGAI Fitness"></div>
+               <div class="absolute top-20 right-6 w-3 h-3 bg-red-500 rounded-full border-2 border-white shadow-lg cursor-pointer hover:scale-110 transition-transform" title="IKIGAI Office - Serwis"></div>
+               
+               <!-- Kontrolki mapy -->
+               <div class="absolute top-4 right-4 flex flex-col space-y-2">
+                 <button class="w-8 h-8 bg-white dark:bg-gray-800 rounded border border-gray-300 dark:border-gray-600 flex items-center justify-center text-gray-600 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-700">📍</button>
+                 <button class="w-8 h-8 bg-white dark:bg-gray-800 rounded border border-gray-300 dark:border-gray-600 flex items-center justify-center text-gray-600 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-700">🏠</button>
+               </div>
+             </div>
+           </div>
+           
+           <!-- LEGENDA (PO PRAWEJ) -->
+           <div class="lg:col-span-1">
+             <div class="space-y-4">
+               <div>
+                 <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">🗺️ Wszystkie automaty</label>
+                 <div class="text-xs text-gray-600 dark:text-gray-400 mb-3">Warszawa</div>
+                 
+                 <div class="space-y-3 text-sm">
+                   <div class="flex items-center space-x-2">
+                     <div class="w-3 h-3 bg-green-500 rounded-full"></div>
+                     <span class="text-gray-700 dark:text-gray-300">Automat online</span>
+                   </div>
+                   <div class="flex items-center space-x-2">
+                     <div class="w-3 h-3 bg-red-500 rounded-full"></div>
+                     <span class="text-gray-700 dark:text-gray-300">Automat w serwisie</span>
+                   </div>
+                   <div class="flex items-center space-x-2">
+                     <div class="w-3 h-3 bg-blue-500 rounded-full"></div>
+                     <span class="text-gray-700 dark:text-gray-300">Twoja lokalizacja</span>
+                   </div>
+                 </div>
+               </div>
+             </div>
+           </div>
+         </div>
+       </div>
+     </div>
+
+     <!-- POZIOMA LISTA AUTOMATÓW POD MAPĄ -->
+     <div class="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700">
+       <div class="p-6 border-b border-gray-200 dark:border-gray-700">
+         <h2 class="text-lg font-semibold text-gray-900 dark:text-white">🏪 Szczegóły automatów</h2>
+         <p class="text-gray-600 dark:text-gray-400">Pełne informacje o automatach IKIGAI - przewiń poziomo</p>
+       </div>
+       
+       <div class="p-6">
+         <!-- Poziomy scroll kontener -->
+         <div class="overflow-x-auto">
+           <div class="flex gap-4 pb-4" style="min-width: max-content;">
+             <div v-for="machine in filteredMachines" :key="machine.id"
+                  @click="selectMachine(machine)"
+                  :class="[
+                    'cursor-pointer p-6 border border-gray-200 dark:border-gray-700 rounded-lg min-w-80 transition-all duration-200',
+                    selectedMachine?.id === machine.id 
+                      ? 'border-green-500 bg-green-50 dark:bg-green-900/20' 
+                      : 'hover:border-green-300 hover:bg-gray-50 dark:hover:bg-gray-700',
+                    machine.status === 'online' 
+                      ? 'bg-gradient-to-br from-green-50 to-green-100 dark:from-green-900/20 dark:to-green-800/20 border-green-200 dark:border-green-700'
+                      : 'bg-gradient-to-br from-red-50 to-red-100 dark:from-red-900/20 dark:to-red-800/20 border-red-200 dark:border-red-700'
+                  ]">
+               
+               <div class="flex items-center justify-between mb-4">
+                 <h3 class="font-semibold text-gray-900 dark:text-white text-lg">{{ machine.name }}</h3>
+                 <span :class="[
+                   'inline-flex items-center px-3 py-1 rounded-full text-sm font-medium',
+                   machine.status === 'online' 
+                     ? 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200'
+                     : 'bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200'
                  ]">
-              
-              <div class="flex items-start justify-between">
-                <div class="flex-1">
-                  <h4 class="font-semibold text-gray-900 dark:text-white">{{ machine.name }}</h4>
-                  <p class="text-sm text-gray-600 dark:text-gray-400 mt-1">{{ machine.location }}</p>
-                  <p class="text-xs text-gray-500 dark:text-gray-500 mt-1">{{ machine.address }}</p>
-                </div>
-                <div :class="[
-                  'px-2 py-1 rounded-full text-xs font-medium',
-                  machine.status === 'online' 
-                    ? 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200'
-                    : 'bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200'
-                ]">
-                  {{ machine.status === 'online' ? '🟢 Online' : '🔴 Serwis' }}
-                </div>
-              </div>
-              
-              <div class="mt-3 flex items-center justify-between">
-                <div class="text-sm text-gray-600 dark:text-gray-400">
-                  Stock: {{ machine.current_stock }}/{{ machine.capacity }}
-                </div>
-                <div class="text-sm text-gray-600 dark:text-gray-400">
-                  {{ machine.operating_hours }}
-                </div>
-              </div>
-              
-              <div v-if="userLocation" class="mt-2 text-xs text-blue-600 dark:text-blue-400">
-                📍 {{ getDistance(machine) }} km od Ciebie
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-      
-      <!-- PRAWA KOLUMNA: Mapa -->
-      <div class="lg:col-span-3">
-        <div class="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 p-6">
-          <div class="flex items-center justify-between mb-4">
-            <h3 class="text-lg font-semibold text-gray-900 dark:text-white">🗺️ Mapa interaktywna</h3>
-            <div class="flex items-center space-x-2">
-              <button @click="centerOnUser" 
-                      v-if="userLocation"
-                      class="px-3 py-1 bg-blue-500 text-white rounded-lg text-sm hover:bg-blue-600 transition-colors duration-200">
-                📍 Moja lokalizacja
-              </button>
-              <button @click="centerOnMachines" 
-                      class="px-3 py-1 bg-green-500 text-white rounded-lg text-sm hover:bg-green-600 transition-colors duration-200">
-                🎯 Wszystkie automaty
-              </button>
-            </div>
-          </div>
-          
-          <!-- Mapa (placeholder - rzeczywista Google Maps) -->
-          <div id="map-container" class="w-full h-96 bg-gray-100 dark:bg-gray-700 rounded-lg flex items-center justify-center relative">
-            <div v-if="!mapLoaded" class="text-center">
-              <div class="text-4xl mb-4">🗺️</div>
-              <p class="text-gray-600 dark:text-gray-400">Ładowanie mapy...</p>
-              <div class="mt-4">
-                <div class="animate-spin rounded-full h-8 w-8 border-b-2 border-green-500 mx-auto"></div>
-              </div>
-            </div>
-            
-            <!-- Symulacja mapy ze statycznymi markerami -->
-            <div v-else class="absolute inset-0 bg-gradient-to-br from-green-100 to-blue-100 dark:from-green-900 dark:to-blue-900 rounded-lg overflow-hidden">
-              <!-- Grid map background -->
-              <div class="absolute inset-0 opacity-20">
-                <div class="grid grid-cols-8 grid-rows-6 h-full">
-                  <div v-for="i in 48" :key="i" class="border border-gray-300 dark:border-gray-600"></div>
-                </div>
-              </div>
-              
-              <!-- Markery automatów -->
-              <div v-for="(machine, index) in filteredMachines" :key="machine.id"
-                   @click="selectMachine(machine)"
-                   :style="getMarkerPosition(index)"
-                   class="absolute cursor-pointer transform -translate-x-1/2 -translate-y-1/2">
-                
-                <!-- Marker -->
-                <div :class="[
-                  'w-8 h-8 rounded-full flex items-center justify-center text-white font-bold text-sm shadow-lg border-2 border-white hover:scale-110 transition-transform duration-200',
-                  machine.status === 'online' 
-                    ? 'bg-green-500' 
-                    : 'bg-red-500'
-                ]">
-                  🏪
-                </div>
-                
-                <!-- Tooltip -->
-                <div v-if="selectedMachine?.id === machine.id" 
-                     class="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 bg-white dark:bg-gray-800 rounded-lg shadow-lg p-3 min-w-64 border border-gray-200 dark:border-gray-700">
-                  <div class="text-sm font-semibold text-gray-900 dark:text-white">{{ machine.name }}</div>
-                  <div class="text-xs text-gray-600 dark:text-gray-400 mt-1">{{ machine.location }}</div>
-                  <div class="text-xs text-gray-500 dark:text-gray-500 mt-1">{{ machine.address }}</div>
-                  
-                  <div class="flex items-center justify-between mt-2">
-                    <span :class="[
-                      'px-2 py-1 rounded-full text-xs font-medium',
-                      machine.status === 'online' 
-                        ? 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200'
-                        : 'bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200'
-                    ]">
-                      {{ machine.status === 'online' ? '🟢 Online' : '🔴 Serwis' }}
-                    </span>
-                    <span class="text-xs text-gray-600 dark:text-gray-400">
-                      {{ machine.current_stock }}/{{ machine.capacity }}
-                    </span>
-                  </div>
-                  
-                  <div class="mt-2 text-xs text-gray-600 dark:text-gray-400">
-                    🕒 {{ machine.operating_hours }}
-                  </div>
-                  
-                  <div class="flex space-x-2 mt-3">
-                    <button @click.stop="getDirections(machine)" 
-                            class="flex-1 bg-blue-500 text-white py-1 px-2 rounded text-xs hover:bg-blue-600 transition-colors duration-200">
-                      🧭 Dojazd
-                    </button>
-                    <button @click.stop="callMachine(machine)" 
-                            class="flex-1 bg-purple-500 text-white py-1 px-2 rounded text-xs hover:bg-purple-600 transition-colors duration-200">
-                      📞 Kontakt
-                    </button>
-                  </div>
-                </div>
-              </div>
-              
-              <!-- User location marker -->
-              <div v-if="userLocation"
-                   :style="getUserMarkerPosition()"
-                   class="absolute cursor-pointer transform -translate-x-1/2 -translate-y-1/2">
-                <div class="w-6 h-6 bg-blue-500 rounded-full flex items-center justify-center text-white border-2 border-white shadow-lg animate-pulse">
-                  📍
-                </div>
-              </div>
-              
-              <!-- Map Legend -->
-              <div class="absolute top-4 right-4 bg-white dark:bg-gray-800 rounded-lg shadow-lg p-3 border border-gray-200 dark:border-gray-700">
-                <h4 class="text-sm font-semibold text-gray-900 dark:text-white mb-2">Legenda</h4>
-                <div class="space-y-1 text-xs">
-                  <div class="flex items-center">
-                    <div class="w-4 h-4 bg-green-500 rounded-full mr-2"></div>
-                    <span class="text-gray-600 dark:text-gray-400">Automat online</span>
-                  </div>
-                  <div class="flex items-center">
-                    <div class="w-4 h-4 bg-red-500 rounded-full mr-2"></div>
-                    <span class="text-gray-600 dark:text-gray-400">Automat w serwisie</span>
-                  </div>
-                  <div class="flex items-center">
-                    <div class="w-4 h-4 bg-blue-500 rounded-full mr-2"></div>
-                    <span class="text-gray-600 dark:text-gray-400">Twoja lokalizacja</span>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
+                   {{ machine.status === 'online' ? '🟢 Online' : '🔧 Serwis' }}
+                 </span>
+               </div>
+               <p class="text-sm text-gray-600 dark:text-gray-400 mb-3">{{ machine.location }}</p>
+               <div class="text-xs text-gray-500 dark:text-gray-500">{{ machine.address }}</div>
+               <div class="mt-4 flex items-center justify-between">
+                 <div :class="[
+                   'text-sm font-medium',
+                   machine.status === 'online' 
+                     ? 'text-green-600 dark:text-green-400'
+                     : 'text-red-600 dark:text-red-400'
+                 ]">
+                   Stock: {{ machine.current_stock }}/{{ machine.capacity }}
+                 </div>
+                 <div class="text-xs text-gray-500 dark:text-gray-500">{{ machine.operating_hours }}</div>
+               </div>
+               
+               <div v-if="userLocation" class="mt-2 text-xs text-blue-600 dark:text-blue-400">
+                 📍 {{ getDistance(machine) }} km od Ciebie
+               </div>
+             </div>
+           </div>
+         </div>
+         
+         <!-- Wskazówka przewijania -->
+         <div class="mt-4 flex items-center justify-center text-sm text-gray-500 dark:text-gray-400 bg-gray-50 dark:bg-gray-700 rounded-lg py-2">
+           <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4"></path>
+           </svg>
+           Przewiń w prawo aby zobaczyć więcej automatów →
+         </div>
+       </div>
+     </div>
+
+
     
     <!-- Detale wybranego automatu -->
     <div v-if="selectedMachine" class="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 p-6">
