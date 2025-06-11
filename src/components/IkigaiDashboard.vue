@@ -91,7 +91,7 @@
     <!-- Main Dashboard Grid -->
     <div class="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 p-8">
       <!-- Dashboard Cards Grid -->
-      <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
         <!-- Kreator Mieszanek - Purple (GŁÓWNA FUNKCJA) -->
         <div @click="$emit('navigate', 'mixer')" class="md:col-span-1 bg-gradient-to-br from-purple-500 to-purple-600 rounded-xl p-8 text-white hover:scale-[1.02] transition-transform duration-200 cursor-pointer">
           <div class="flex items-center mb-6">
@@ -165,7 +165,7 @@
         </div>
 
         <!-- Analytics - Orange (Admin only) -->
-        <div v-if="isAdmin" class="md:col-span-2 lg:col-span-3 bg-gradient-to-br from-red-500 to-red-600 rounded-xl p-8 text-white hover:scale-[1.02] transition-transform duration-200 cursor-pointer">
+        <div v-if="isAdmin" class="md:col-span-2 bg-gradient-to-br from-red-500 to-red-600 rounded-xl p-8 text-white hover:scale-[1.02] transition-transform duration-200 cursor-pointer">
           <div class="flex items-center mb-6">
             <svg class="w-10 h-10 mr-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
               <rect x="3" y="3" width="18" height="18" rx="2" ry="2"/>
@@ -215,7 +215,7 @@
 
 
 
-      <div v-if="!loadingRecommendations" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+      <div v-if="!loadingRecommendations" class="grid grid-cols-1 md:grid-cols-2 gap-8">
         <div 
           v-for="(rec, index) in recommendations" 
           :key="rec.id"
