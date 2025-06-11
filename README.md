@@ -171,6 +171,153 @@ python3 start_server.py
 - **TypeScript type safety** w całym fronendzie
 - **Mobile PWA ready** z service workers support
 
+## 🔮 Plany Rozbudowy Systemu
+
+### 🥣 Kreator Mieszanek IKIGAI - Przyszłe Funkcje
+
+#### 🤖 Inteligentne Rekomendacje
+- **AI-powered suggestions** na podstawie historii zamówień
+- **Machine Learning algorithms** do przewidywania preferencji
+- **Seasonal recommendations** z sezonowymi składnikami
+- **Collaborative filtering** - "Użytkownicy podobni do Ciebie lubią..."
+
+#### 🧬 Zaawansowana Analiza Składników  
+- **Pełne bazy składników odżywczych** z APIs (USDA, OpenFoodFacts)
+- **Real-time kalkulator kalorii** i makroskładników
+- **Mikroelementy tracking** (witaminy, minerały, antyoksydanty)
+- **Allergen detection** z alertami dla użytkowników
+
+#### 🎯 Personalizacja Dietetyczna
+- **Specialized diet modes**: Keto, Vegan, Paleo, Mediterranean, DASH
+- **Medical dietary restrictions** import z systemów zdrowotnych
+- **Caloric goals tracking** z daily/weekly targets
+- **Nutritionist-approved recipes** z certyfikacją specjalistów
+
+#### 🌐 Social & Sharing Features
+- **Recipe sharing** w mediach społecznościowych
+- **Community ratings** i reviews mieszanek
+- **User-generated content** - własne przepisy społeczności
+- **Collaboration tools** dla tworzenia wspólnych mieszanek
+
+### 🗺️ Mapa Automatów - Smart Infrastructure
+
+#### 🔌 IoT Integration
+- **Real-time inventory sensors** w automatach
+- **Temperature monitoring** produktów
+- **Predictive maintenance** alerts dla serwisu
+- **Energy consumption optimization** z smart grid
+
+#### 📱 Advanced User Experience
+- **AR View Mode** - nakładka rozszerzonej rzeczywistości
+- **Product reservation system** z 15-minutowym pick-up window
+- **Multi-stop routing** - optymalna trasa do kilku automatów
+- **Voice navigation** z asystentem głosowym
+
+#### 🚌 Transport Integration
+- **Public transport APIs** (timetables, delays)
+- **Walking/cycling routes** z real-time traffic
+- **Parking availability** near vending locations
+- **Accessibility features** dla użytkowników z niepełnosprawnościami
+
+#### 👥 Community Features
+- **Crowdsourced reporting** o statusie automatów
+- **User check-ins** z social rewards
+- **Location reviews** i zdjęcia
+- **Emergency contact** dla problemów technicznych
+
+### 🏆 Program Lojalnościowy - Gamifikacja 2.0
+
+#### 🎮 Advanced Gamification
+- **Achievement system** z 50+ różnymi badges
+- **Weekly/monthly competitions** między użytkownikami
+- **Seasonal events** z limitowanymi nagrodami
+- **Progress visualization** z interactive charts
+
+#### 👥 Social Loyalty Features
+- **Friends & family circles** z shared challenges
+- **Referral program** - punkty za zaproszenia
+- **Team challenges** dla firm i grup
+- **Leaderboards** z weekly/monthly rankings
+
+#### 🎁 Premium Rewards Ecosystem
+- **VIP tiers** z exclusive benefits (early access, special discounts)
+- **Brand partnerships** - nagrody od partnerów (odzież sportowa, suplementy)
+- **Experience rewards** - warsztaty kulinarne, konsultacje dietetyczne
+- **Charity donations** - wymiana punktów na dobroczynność
+
+#### 📊 Personalized Analytics
+- **Health impact tracking** - jak wybory żywieniowe wpływają na samopoczucie
+- **Spending insights** z recommended budget optimization
+- **Habit formation tracking** z behavioral psychology
+- **Milestone celebrations** z personalized messages
+
+### 📱 Mobile QR App - Next-Gen Experience
+
+#### 🗣️ Voice & AI Interface
+- **Voice ordering** z Natural Language Processing
+- **Smart assistant** do recommendations i help
+- **Multilingual support** (Polski, Angielski, Niemiecki, Ukraiński)
+- **Conversation memory** - context-aware interactions
+
+#### 🔐 Advanced Security & Payments
+- **Biometric authentication** (FaceID, TouchID, fingerprint)
+- **Multi-factor authentication** dla high-value transactions
+- **Cryptocurrency payments** (Bitcoin, Ethereum)
+- **Digital wallet integration** (Apple Pay, Google Pay, Samsung Pay)
+
+#### 🌐 Offline & Sync Capabilities
+- **Offline mode** z full functionality bez internetu
+- **Smart synchronization** kiedy wraca łączność
+- **Cached content** dla faster loading
+- **Background updates** z intelligent scheduling
+
+#### 🔔 Smart Notifications System
+- **Machine learning predictions** dla optimal notification timing
+- **Location-based alerts** kiedy jesteś blisko automatów
+- **Behavioral pattern recognition** - personalized reminders
+- **Silent hours** z user-defined Do Not Disturb periods
+
+### 🏥 Integracja z Systemami Zdrowotnymi
+
+#### 📱 Fitness Apps Integration
+- **Apple HealthKit** - synchronizacja activity i health data
+- **Google Fit** - calories burned, steps, workouts
+- **Fitbit API** - heart rate, sleep patterns, exercise tracking
+- **Strava Integration** - dla sportowców i biegaczy
+- **MyFitnessPal** - comprehensive food diary sync
+- **Samsung Health** - complete ecosystem integration
+
+#### 🩺 Medical Systems Integration
+- **Electronic Health Records (EHR)** import dietary restrictions
+- **Telemedicine platforms** - shared nutrition data z lekarzami
+- **Pharmacy systems** - drug-food interaction warnings
+- **Hospital nutrition departments** - meal planning dla pacjentów
+- **Insurance providers** - wellness program integration
+- **Clinical research platforms** - anonymized data dla badań
+
+#### 👨‍⚕️ Professional Healthcare Tools
+- **Nutritionist dashboard** - monitoring clients' progress
+- **Dietitian prescription system** - recommended meal plans
+- **Doctor portal** - patient nutrition insights
+- **Therapy integration** - eating disorder support tools
+- **Medical alert system** - emergency dietary needs
+
+#### 📊 Health Analytics & Insights
+- **Biomarker correlation** - jak żywienie wpływa na parametry krwi
+- **Mental health tracking** - mood vs nutrition patterns
+- **Sleep quality correlation** z dietary choices
+- **Energy levels monitoring** throughout the day
+- **Chronic disease management** (diabetes, hypertension, cholesterol)
+- **Preventive health scoring** z long-term predictions
+
+#### 🔬 Research & Development Features
+- **Anonymized data collection** dla nutrition research
+- **Clinical trial participation** opportunities
+- **Personalized nutrition algorithms** based on genetic data
+- **Microbiome analysis integration** dla gut health
+- **Continuous glucose monitoring** sync
+- **Wearable devices ecosystem** (smartwatches, rings, patches)
+
 ## 🎯 Philosophy IKIGAI
 
 Aplikacja implementuje japońską koncepcję IKIGAI poprzez 4 filary:
