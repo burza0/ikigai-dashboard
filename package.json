@@ -1,9 +1,9 @@
 {
-  "name": "skatecross-qr-frontend",
+  "name": "ikigai-dashboard",
   "private": true,
-  "version": "1.0.0",
+  "version": "2.0.0",
   "type": "module",
-  "description": "SKATECROSS - Centrum Startu i Drukowanie QR",
+  "description": "🌱 IKIGAI Dashboard - Healthy Vending Machines with QR Orders",
   "scripts": {
     "dev": "vite",
     "build": "vite build",
