@@ -24,7 +24,7 @@
               </div>
               <h1 class="text-xl sm:text-2xl font-semibold text-gray-900 dark:text-white transition-colors duration-200">
                 🌱 IKIGAI Dashboard
-              </h1>
+            </h1>
             </div>
           </div>
           
@@ -76,7 +76,7 @@
               >
                 🏆 Loyalty
               </button>
-              <button 
+              <button
                 @click="navigateTo('mobile')"
                 :class="[
                   'px-4 py-2 text-base font-medium rounded-lg transition-colors duration-200',
@@ -87,6 +87,17 @@
               >
                 📱 Mobile QR
               </button>
+              <button 
+                @click="navigateTo('analytics')"
+                  :class="[
+                  'px-4 py-2 text-base font-medium rounded-lg transition-colors duration-200',
+                  currentView === 'analytics' 
+                    ? 'bg-purple-100 text-purple-700 dark:bg-purple-900 dark:text-purple-300' 
+                    : 'text-gray-600 dark:text-gray-300 hover:text-purple-600 dark:hover:text-purple-400'
+                  ]"
+              >
+                📊 Analytics
+              </button>
             </div>
 
             
@@ -94,15 +105,15 @@
             <button 
               @click="toggleDarkMode"
               class="p-2 sm:p-3 text-gray-400 dark:text-gray-300 hover:text-purple-500 dark:hover:text-purple-400 transition-colors duration-200"
-              :title="isDarkMode ? 'Przełącz na tryb jasny' : 'Przełącz na tryb ciemny'"
+              :title="darkMode ? 'Przełącz na tryb jasny' : 'Przełącz na tryb ciemny'"
             >
-              <svg v-if="isDarkMode" class="h-6 w-6 sm:h-7 sm:w-7" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+              <svg v-if="darkMode" class="h-6 w-6 sm:h-7 sm:w-7" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
                 <circle cx="12" cy="12" r="5"/>
                 <path d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42"/>
               </svg>
-              <svg v-else class="h-6 w-6 sm:h-7 sm:w-7" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
-                <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/>
-              </svg>
+                              <svg v-else class="h-6 w-6 sm:h-7 sm:w-7" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+                  <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/>
+                </svg>
             </button>
             
             <!-- User Avatar -->
@@ -120,52 +131,168 @@
     <!-- Main Dashboard Content -->
     <main class="max-w-7xl mx-auto py-8 px-4 sm:px-6 lg:px-8">
       <IkigaiDashboard v-if="currentView === 'dashboard'" :isAdmin="isAdmin" @navigate="navigateTo" />
-      <MixtureCreator v-else-if="currentView === 'mixer'" @navigate="navigateTo" />
+      <RecipeCreator v-else-if="currentView === 'mixer'" @navigate="navigateTo" />
       <VendingMap v-else-if="currentView === 'map'" @navigate="navigateTo" />
       <LoyaltyProgram v-else-if="currentView === 'loyalty'" @navigate="navigateTo" />
       <MobileQrApp v-else-if="currentView === 'mobile'" @back="navigateTo('dashboard')" />
+      <Analytics v-else-if="currentView === 'analytics'" @navigate="navigateTo" />
     </main>
   </div>
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted } from 'vue'
+import { ref, defineAsyncComponent } from 'vue'
+
+// Core component - always loaded
 import IkigaiDashboard from './components/IkigaiDashboard.vue'
-import MixtureCreator from './components/MixtureCreator.vue'
-import VendingMap from './components/VendingMap.vue'
-import LoyaltyProgram from './components/LoyaltyProgram.vue'
-import MobileQrApp from './components/MobileQrApp.vue'
 
-// Reactive variables
-const isAdmin = ref(false)
-const isDarkMode = ref(localStorage.getItem('darkMode') === 'true')
-const currentView = ref('dashboard') // 'dashboard' lub 'mixer'
+// Lazy-loaded components with loading states
+const RecipeCreator = defineAsyncComponent({
+  loader: () => import('./components/RecipeCreator.vue'),
+  loadingComponent: {
+    template: `
+      <div class="min-h-screen bg-gray-50 dark:bg-gray-900 flex items-center justify-center">
+        <div class="text-center">
+          <div class="animate-spin rounded-full h-12 w-12 border-b-2 border-purple-600 mx-auto mb-4"></div>
+          <p class="text-gray-600 dark:text-gray-400">Ładowanie kreatora...</p>
+        </div>
+      </div>
+    `
+  },
+  errorComponent: {
+    template: `
+      <div class="min-h-screen bg-gray-50 dark:bg-gray-900 flex items-center justify-center">
+        <div class="text-center p-8">
+          <div class="text-red-500 text-4xl mb-4">⚠️</div>
+          <h3 class="text-lg font-semibold text-gray-900 dark:text-white mb-2">Błąd ładowania</h3>
+          <p class="text-gray-600 dark:text-gray-400 mb-4">Nie udało się załadować kreatora</p>
+          <button @click="window.location.reload()" class="px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700">
+            Odśwież stronę
+          </button>
+        </div>
+      </div>
+    `
+  },
+  delay: 200,
+  timeout: 10000
+})
 
-// Methods
-const navigateTo = (view: string) => {
-  currentView.value = view
+const VendingMap = defineAsyncComponent({
+  loader: () => import('./components/VendingMap.vue'),
+  loadingComponent: {
+    template: `
+      <div class="min-h-screen bg-gray-50 dark:bg-gray-900 flex items-center justify-center">
+        <div class="text-center">
+          <div class="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
+          <p class="text-gray-600 dark:text-gray-400">Ładowanie mapy...</p>
+        </div>
+      </div>
+    `
+  },
+  delay: 200,
+  timeout: 10000
+})
+
+const LoyaltyProgram = defineAsyncComponent({
+  loader: () => import('./components/LoyaltyProgram.vue'),
+  loadingComponent: {
+    template: `
+      <div class="min-h-screen bg-gray-50 dark:bg-gray-900 flex items-center justify-center">
+        <div class="text-center">
+          <div class="animate-spin rounded-full h-12 w-12 border-b-2 border-green-600 mx-auto mb-4"></div>
+          <p class="text-gray-600 dark:text-gray-400">Ładowanie programu lojalnościowego...</p>
+        </div>
+      </div>
+    `
+  },
+  delay: 200,
+  timeout: 10000
+})
+
+const MobileQrApp = defineAsyncComponent({
+  loader: () => import('./components/MobileQrApp.vue'),
+  loadingComponent: {
+    template: `
+      <div class="min-h-screen bg-gray-50 dark:bg-gray-900 flex items-center justify-center">
+        <div class="text-center">
+          <div class="animate-spin rounded-full h-12 w-12 border-b-2 border-indigo-600 mx-auto mb-4"></div>
+          <p class="text-gray-600 dark:text-gray-400">Ładowanie aplikacji mobile...</p>
+        </div>
+      </div>
+    `
+  },
+  delay: 200,
+  timeout: 10000
+})
+
+const Analytics = defineAsyncComponent({
+  loader: () => import('./components/Analytics.vue'),
+  loadingComponent: {
+    template: `
+      <div class="min-h-screen bg-gray-50 dark:bg-gray-900 flex items-center justify-center">
+        <div class="text-center">
+          <div class="animate-spin rounded-full h-12 w-12 border-b-2 border-orange-600 mx-auto mb-4"></div>
+          <p class="text-gray-600 dark:text-gray-400">Ładowanie analityki...</p>
+        </div>
+      </div>
+    `
+  },
+  delay: 200,
+  timeout: 10000
+})
+
+// Reactive state
+const currentView = ref('dashboard')
+const isAdmin = ref(true)
+const darkMode = ref(localStorage.getItem('darkMode') === 'true')
+
+// Performance: Preload next likely component
+const preloadComponent = (componentName) => {
+  if (componentName === 'mixer') RecipeCreator
+  else if (componentName === 'map') VendingMap
+  else if (componentName === 'loyalty') LoyaltyProgram
+  else if (componentName === 'mobile') MobileQrApp
+  else if (componentName === 'analytics') Analytics
 }
 
+// Navigation with preloading
+const navigateTo = (view) => {
+  // Preload component before switching (performance optimization)
+  preloadComponent(view)
+  
+  // Small delay to allow preloading
+  setTimeout(() => {
+    currentView.value = view
+  }, 50)
+}
 
-
+// Theme management with performance optimization
 const toggleDarkMode = () => {
-  isDarkMode.value = !isDarkMode.value
-  localStorage.setItem("darkMode", isDarkMode.value.toString())
-  if (isDarkMode.value) {
+  darkMode.value = !darkMode.value
+  
+  // Use requestAnimationFrame for smooth transition
+  requestAnimationFrame(() => {
+    if (darkMode.value) {
+      document.documentElement.classList.add('dark')
+      localStorage.setItem('darkMode', 'true')
+    } else {
+      document.documentElement.classList.remove('dark')
+      localStorage.setItem('darkMode', 'false')
+    }
+  })
+}
+
+// Initialize theme
+const initializeTheme = () => {
+  const savedTheme = localStorage.getItem('darkMode')
+  if (savedTheme === 'true') {
+    darkMode.value = true
     document.documentElement.classList.add('dark')
-  } else {
-    document.documentElement.classList.remove('dark')
   }
 }
 
 // Lifecycle
-onMounted(() => {
-  if (isDarkMode.value) {
-    document.documentElement.classList.add("dark")
-  } else {
-    document.documentElement.classList.remove("dark")
-  }
-})
+initializeTheme()
 </script>
 
 <style>

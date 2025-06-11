@@ -185,10 +185,10 @@
           <div v-else class="text-center py-8">
             <div class="text-6xl mb-4">📱</div>
             <h4 class="text-xl font-bold text-white mb-2">Brak kodów QR</h4>
-            <p class="text-white/60 mb-4">Utworz swoją pierwszą mieszankę w Kreatorze, aby wygenerować kod QR</p>
+            <p class="text-white/60 mb-4">Utworz swój pierwszy bowl w Kreatorze, aby wygenerować kod QR</p>
             <button @click="$emit('navigate', 'mixer')" 
-                    class="bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white font-bold py-3 px-6 rounded-xl transition-all duration-200">
-              🥣 Stwórz mieszankę
+                    class="bg-white/20 hover:bg-white/30 text-white px-4 py-2 rounded-lg transition-all duration-200">
+              🥣 Stwórz bowl
             </button>
           </div>
         </div>

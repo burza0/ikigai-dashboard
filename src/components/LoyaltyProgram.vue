@@ -105,10 +105,9 @@
           <h3 class="text-lg font-semibold text-gray-900 dark:text-white mb-4">⚡ Szybkie akcje</h3>
           
           <div class="space-y-3">
-            <button @click="$emit('navigate', 'mixer')" 
-                    class="w-full bg-purple-500 hover:bg-purple-600 text-white py-3 px-4 rounded-lg transition-colors duration-200 flex items-center justify-center">
-              <span class="mr-2">🥣</span> Skomponuj mieszankę (+punkty)
-            </button>
+            <li class="flex items-center text-base text-gray-700 dark:text-gray-300">
+              <span class="mr-2">🥣</span> Skomponuj bowl (+punkty)
+            </li>
             <button @click="simulateOrder" 
                     class="w-full bg-green-500 hover:bg-green-600 text-white py-3 px-4 rounded-lg transition-colors duration-200 flex items-center justify-center">
               <span class="mr-2">🎯</span> Symuluj zamówienie

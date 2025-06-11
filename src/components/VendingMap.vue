@@ -98,7 +98,7 @@
                <div 
                  v-for="(machine, index) in vendingMachines" 
                  :key="machine.id"
-                 :style="getMarkerStyle(index)"
+                 :style="getMarkerStyle(machine)"
                  class="absolute cursor-pointer transition-all duration-200 hover:scale-110 z-10"
                  @click="selectMachine(machine)"
                  :title="machine.name">
@@ -306,8 +306,8 @@
           <span class="mr-2">📞</span> Zgłoś problem
         </button>
         <button @click="$emit('navigate', 'mixer')" 
-                class="bg-green-500 hover:bg-green-600 text-white py-2 px-4 rounded-lg transition-colors duration-200 flex items-center">
-          <span class="mr-2">🥣</span> Skomponuj mieszankę
+                class="w-full bg-purple-500 hover:bg-purple-600 text-white py-3 px-4 rounded-lg transition-colors duration-200 flex items-center justify-center">
+          <span class="mr-2">🥣</span> Skomponuj bowl
         </button>
       </div>
     </div>
@@ -414,20 +414,55 @@ const getDistance = (machine) => {
   return distance.toFixed(1)
 }
 
-const getMarkerPosition = (index) => {
-  // Pozycje dla wszystkich 5 automatów na mapie Warszawy
-  const positions = [
-    { top: '40%', left: '50%' },  // IKIGAI Central - centrum
-    { top: '60%', left: '30%' },  // IKIGAI Fitness - południowy zachód
-    { top: '30%', left: '70%' },  // IKIGAI Office - północny wschód
-    { top: '25%', left: '45%' },  // IKIGAI University - północ centrum
-    { top: '70%', left: '60%' }   // IKIGAI Park - południe wschód
-  ]
-  return positions[index] || { top: '50%', left: '50%' }
+const getMarkerPosition = (machine) => {
+  // Konwersja rzeczywistych współrzędnych geograficznych na pozycje na mapie Warszawy
+  // Warszawa bounds: 52.10 - 52.35 (lat), 20.85 - 21.20 (lng)
+  const bounds = {
+    north: 52.35,
+    south: 52.10,
+    east: 21.20,
+    west: 20.85
+  }
+  
+  // Przelicz współrzędne na procenty pozycji na mapie
+  const latPercent = ((machine.coordinates.lat - bounds.south) / (bounds.north - bounds.south)) * 100
+  const lngPercent = ((machine.coordinates.lng - bounds.west) / (bounds.east - bounds.west)) * 100
+  
+  // Odwróć lat (mapa ma origin w lewym górnym rogu)
+  const topPercent = 100 - latPercent
+  
+  // Ograniczenia żeby markery zostały na mapie
+  const top = Math.max(5, Math.min(95, topPercent))
+  const left = Math.max(5, Math.min(95, lngPercent))
+  
+  return { 
+    top: `${top}%`, 
+    left: `${left}%` 
+  }
 }
 
 const getUserMarkerPosition = () => {
-  return { top: '50%', left: '40%' } // Symulowana pozycja użytkownika
+  if (!userLocation.value) return { top: '50%', left: '50%' }
+  
+  // Użyj tej samej logiki co dla automatów
+  const bounds = {
+    north: 52.35,
+    south: 52.10,
+    east: 21.20,
+    west: 20.85
+  }
+  
+  const latPercent = ((userLocation.value.lat - bounds.south) / (bounds.north - bounds.south)) * 100
+  const lngPercent = ((userLocation.value.lng - bounds.west) / (bounds.east - bounds.west)) * 100
+  const topPercent = 100 - latPercent
+  
+  const top = Math.max(5, Math.min(95, topPercent))
+  const left = Math.max(5, Math.min(95, lngPercent))
+  
+  return { 
+    top: `${top}%`, 
+    left: `${left}%` 
+  }
 }
 
 const centerOnUser = () => {
@@ -490,8 +525,8 @@ const getPaymentIcon = (method) => {
   return icons[method] || '💰'
 }
 
-const getMarkerStyle = (index) => {
-  const position = getMarkerPosition(index)
+const getMarkerStyle = (machine) => {
+  const position = getMarkerPosition(machine)
   return {
     top: position.top,
     left: position.left

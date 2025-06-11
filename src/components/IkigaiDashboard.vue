@@ -1,7 +1,7 @@
 <template>
   <div class="space-y-8">
-    <!-- Tools & Quick Actions -->
-    <div v-if="isAdmin" class="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 p-8">
+    <!-- Tools & Quick Actions - UKRYTY -->
+    <div v-if="false && isAdmin" class="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 p-8">
       <div class="flex items-center justify-between mb-8">
         <div>
           <h2 class="text-xl font-semibold text-gray-900 dark:text-white flex items-center">
@@ -92,7 +92,7 @@
     <div class="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 p-8">
       <!-- Dashboard Cards Grid -->
       <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
-        <!-- Kreator Mieszanek - Purple (GŁÓWNA FUNKCJA) -->
+        <!-- Kreator Bowl - Purple (GŁÓWNA FUNKCJA) -->
         <div @click="$emit('navigate', 'mixer')" class="md:col-span-1 bg-gradient-to-br from-purple-500 to-purple-600 rounded-xl p-8 text-white hover:scale-[1.02] transition-transform duration-200 cursor-pointer">
           <div class="flex items-center mb-6">
             <svg class="w-11 h-11 mr-4 text-purple-200" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
@@ -101,9 +101,9 @@
               <path d="M4 16c0 6 2 8 8 8s8-2 8-8"/>
               <rect x="4" y="8" width="16" height="8" rx="2"/>
             </svg>
-            <h3 class="text-3xl font-semibold">Kreator Mieszanek</h3>
+            <h3 class="text-3xl font-semibold">Kreator Bowl</h3>
           </div>
-          <p class="text-lg text-purple-100 mb-6">Skomponuj swoją idealną mieszankę szczęścia IKIGAI</p>
+          <p class="text-lg text-purple-100 mb-6">Skomponuj swój idealny bowl szczęścia IKIGAI</p>
           <div class="text-3xl font-bold mb-3">4 bazy + 6 dodatków</div>
           <div class="text-purple-200 text-base">Rozpocznij podróż! ✨</div>
         </div>
@@ -151,7 +151,7 @@
         </div>
 
         <!-- Mapa Automatów - Green -->
-        <div @click="$emit('navigate', 'vending')" class="md:col-span-1 bg-gradient-to-br from-green-500 to-green-600 rounded-xl p-8 text-white hover:scale-[1.02] transition-transform duration-200 cursor-pointer">
+        <div @click="$emit('navigate', 'map')" class="md:col-span-1 bg-gradient-to-br from-green-500 to-green-600 rounded-xl p-8 text-white hover:scale-[1.02] transition-transform duration-200 cursor-pointer">
           <div class="flex items-center mb-6">
             <svg class="w-11 h-11 mr-4 text-green-200" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
               <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/>
@@ -180,17 +180,17 @@
       </div>
     </div>
 
-    <!-- Top 5 Rekomendacji IKIGAI -->
+    <!-- Top 5 Bowl IKIGAI -->
     <div class="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 p-8">
       <div class="flex items-center justify-between mb-8">
         <h2 class="text-2xl font-semibold text-gray-900 dark:text-white flex items-center">
           <svg class="w-7 h-7 mr-4 text-yellow-500" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
             <polygon points="12,2 15.09,8.26 22,9.27 17,14.14 18.18,21.02 12,17.77 5.82,21.02 7,14.14 2,9.27 8.91,8.26"/>
           </svg>
-          🌟 Top 5 Rekomendacji IKIGAI
+          🌟 Top 5 Bowl IKIGAI
         </h2>
         <p class="text-base text-gray-600 dark:text-gray-400">
-          Najpopularniejsze i najzdrowsze mieszanki - zamów jednym kliknięciem
+          Najpopularniejsze i najzdrowsze bowls - zamów jednym kliknięciem
         </p>
       </div>
 
@@ -202,8 +202,7 @@
         <div 
           v-for="(rec, index) in recommendations" 
           :key="rec.id"
-          class="bg-gradient-to-br from-gray-50 to-white dark:from-gray-700 dark:to-gray-800 rounded-xl p-8 border border-gray-200 dark:border-gray-600 hover:shadow-lg transition-all duration-200 cursor-pointer hover:scale-[1.02]"
-          @click="orderRecommendation(rec)"
+          class="bg-gradient-to-br from-gray-50 to-white dark:from-gray-700 dark:to-gray-800 rounded-xl p-8 border border-gray-200 dark:border-gray-600 hover:shadow-lg transition-all duration-200"
         >
           <!-- Name & Description -->
           <h3 class="font-semibold text-gray-900 dark:text-white mb-4 text-lg">{{ rec.name || 'Ładowanie...' }}</h3>
@@ -225,7 +224,10 @@
             <div class="text-2xl font-bold text-purple-600 dark:text-purple-400">
               {{ (rec.total_price || 0).toFixed(2) }}zł
             </div>
-            <button class="bg-purple-600 hover:bg-purple-700 text-white text-base px-6 py-3 rounded-lg font-medium transition-colors duration-200">
+            <button 
+              @click="orderRecommendation(rec)"
+              class="bg-purple-600 hover:bg-purple-700 text-white text-base px-6 py-3 rounded-lg font-medium transition-colors duration-200"
+            >
               Zamów
             </button>
           </div>

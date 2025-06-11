@@ -7,7 +7,7 @@
         🏠 Dashboard
       </button>
       <span class="mx-2">/</span>
-      <span class="text-purple-600 dark:text-purple-400 font-medium">🥣 Kreator Mieszanek</span>
+      <span class="text-purple-600 dark:text-purple-400 font-medium">🥣 Kreator Bowl</span>
     </div>
     
     <!-- Header z filozofią IKIGAI -->
@@ -17,8 +17,8 @@
           <span class="text-purple-600 text-2xl font-bold">生</span>
         </div>
         <div>
-          <h1 class="text-3xl font-bold">🥣 Kreator Mieszanek IKIGAI</h1>
-          <p class="text-purple-100 mt-2">Skomponuj swoją idealną mieszankę szczęścia</p>
+          <h1 class="text-3xl font-bold">🥣 Kreator Bowl IKIGAI</h1>
+          <p class="text-purple-100 mt-2">Skomponuj swój idealny bowl szczęścia</p>
         </div>
       </div>
     </div>
@@ -103,28 +103,109 @@
           </div>
         </div>
 
-        <!-- STEP 3: Nazwa mieszanki -->
-        <div v-if="selectedBase" class="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
-          <div class="flex items-center mb-6">
-            <div class="w-8 h-8 bg-purple-100 rounded-full flex items-center justify-center mr-3">
-              <span class="text-purple-600 font-bold">3</span>
-            </div>
-            <h2 class="text-xl font-semibold text-gray-900">✨ Nazwij swoją mieszankę</h2>
+        <!-- STEP 3: Nazwa bowl -->
+        <div v-if="currentStep === 3" class="space-y-8">
+          <div class="text-center mb-8">
+            <div class="text-6xl mb-4">✨</div>
+            <h2 class="text-xl font-semibold text-gray-900">✨ Nazwij swój bowl</h2>
+            <p class="text-base text-gray-600 mt-2">Nadaj unikalną nazwę swojej kreacji</p>
           </div>
-          
-          <input v-model="mixtureName" 
-                 type="text" 
-                 placeholder="np. Moja Poranna Energia"
-                 class="w-full p-4 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500 text-lg">
+
+          <!-- Podgląd bowl -->
+          <div class="bg-gradient-to-br from-purple-50 to-blue-50 dark:from-purple-900/20 dark:to-blue-900/20 rounded-xl p-6 border border-purple-200 dark:border-purple-700">
+            <h3 class="text-lg font-semibold text-gray-900 mb-4">🥣 Twój bowl</h3>
+            
+            <div v-if="!selectedBase" class="text-center py-8 text-gray-500">
+              <div class="text-4xl mb-4">🤔</div>
+              <p>Wybierz bazę, aby rozpocząć</p>
+            </div>
+            
+            <div v-else class="space-y-4">
+              <!-- Nazwa -->
+              <div v-if="mixtureName" class="text-center mb-4">
+                <h4 class="text-xl font-bold text-purple-600">{{ mixtureName }}</h4>
+              </div>
+              
+              <!-- Baza -->
+              <div class="flex items-center p-3 bg-purple-50 rounded-lg">
+                <span class="text-2xl mr-3">{{ selectedBase.icon }}</span>
+                <div class="flex-1">
+                  <div class="font-semibold">{{ selectedBase.name }}</div>
+                  <div class="text-sm text-gray-600">{{ selectedBase.price.toFixed(2) }}zł</div>
+                </div>
+              </div>
+              
+              <!-- Dodatki -->
+              <div v-if="selectedToppings.length > 0">
+                <div class="text-sm font-medium text-gray-700 mb-2">Dodatki:</div>
+                <div v-for="topping in selectedToppings" :key="topping.id"
+                     class="flex items-center p-2 bg-green-50 rounded-lg mb-2">
+                  <span class="text-xl mr-2">{{ topping.icon }}</span>
+                  <div class="flex-1">
+                    <div class="text-sm font-medium">{{ topping.name }}</div>
+                    <div class="text-xs text-gray-600">+{{ topping.price.toFixed(2) }}zł</div>
+                  </div>
+                </div>
+              </div>
+              
+              <!-- Wartości odżywcze -->
+              <div class="bg-gray-50 rounded-lg p-4">
+                <h4 class="font-semibold text-gray-900 mb-3">📊 Wartości odżywcze</h4>
+                <div class="grid grid-cols-2 gap-3">
+                  <div class="text-center">
+                    <div class="text-lg font-bold text-orange-600">{{ totalNutrition.kcal }}</div>
+                    <div class="text-xs text-gray-600">kcal</div>
+                  </div>
+                  <div class="text-center">
+                    <div class="text-lg font-bold text-blue-600">{{ totalNutrition.protein }}g</div>
+                    <div class="text-xs text-gray-600">białko</div>
+                  </div>
+                  <div class="text-center">
+                    <div class="text-lg font-bold text-green-600">{{ totalNutrition.carbs }}g</div>
+                    <div class="text-xs text-gray-600">węglowodany</div>
+                  </div>
+                  <div class="text-center">
+                    <div class="text-lg font-bold text-yellow-600">{{ totalNutrition.fat }}g</div>
+                    <div class="text-xs text-gray-600">tłuszcze</div>
+                  </div>
+                </div>
+              </div>
+              
+              <!-- Etykiety dietetyczne -->
+              <div v-if="allDietaryLabels.length > 0">
+                <h4 class="font-semibold text-gray-900 mb-2">🏷️ Cechy</h4>
+                <div class="flex flex-wrap gap-2">
+                  <span v-for="label in allDietaryLabels" :key="label"
+                        class="px-3 py-1 bg-purple-100 text-purple-700 rounded-full text-xs">
+                    {{ label }}
+                  </span>
+                </div>
+              </div>
+              
+              <!-- Cena całkowita -->
+              <div class="bg-purple-100 rounded-lg p-4 text-center">
+                <div class="text-2xl font-bold text-purple-600">{{ totalPrice.toFixed(2) }}zł</div>
+                <div class="text-sm text-purple-700">Cena całkowita</div>
+              </div>
+              
+              <!-- Przycisk składania zamówienia -->
+              <button @click="createMixture" 
+                      :disabled="!selectedBase || isCreating"
+                      class="w-full bg-gradient-to-r from-purple-500 to-purple-600 text-white py-4 rounded-lg font-semibold hover:from-purple-600 hover:to-purple-700 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed">
+                <span v-if="isCreating">⏳ Tworzę...</span>
+                <span v-else>💾 Zapisz bowl</span>
+              </button>
+            </div>
+          </div>
         </div>
       </div>
 
       <!-- PRAWA KOLUMNA: Podgląd i podsumowanie -->
       <div class="space-y-6">
         
-        <!-- Podgląd mieszanki -->
+        <!-- Podgląd bowl -->
         <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-6 sticky top-6">
-          <h3 class="text-lg font-semibold text-gray-900 mb-4">🥣 Twoja mieszanka</h3>
+          <h3 class="text-lg font-semibold text-gray-900 mb-4">🥣 Twoj bowl</h3>
           
           <div v-if="!selectedBase" class="text-center py-8 text-gray-500">
             <div class="text-4xl mb-4">🤔</div>
@@ -204,7 +285,7 @@
                     :disabled="!selectedBase || isCreating"
                     class="w-full bg-gradient-to-r from-purple-500 to-purple-600 text-white py-4 rounded-lg font-semibold hover:from-purple-600 hover:to-purple-700 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed">
               <span v-if="isCreating">⏳ Tworzę...</span>
-              <span v-else>💾 Zapisz mieszankę</span>
+              <span v-else>💾 Zapisz bowl</span>
             </button>
           </div>
         </div>
@@ -220,11 +301,11 @@
       </div>
     </div>
 
-    <!-- Moje Mieszanki -->
+    <!-- Moje Bowls -->
     <div v-if="savedMixtures.length > 0" class="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
       <h2 class="text-xl font-semibold text-gray-900 mb-6 flex items-center">
         <span class="text-2xl mr-3">💾</span>
-        Moje Mieszanki
+        Moje Bowls
         <span class="ml-auto text-sm text-gray-500">{{ savedMixtures.length }} zapisanych</span>
       </h2>
       
@@ -285,12 +366,12 @@
       </div>
     </div>
 
-    <!-- Top 5 Rekomendacji -->
+    <!-- Top 5 Bowl -->
     <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
-      <h2 class="text-xl font-semibold text-gray-900 mb-6 flex items-center">
+      <h3 class="text-lg font-semibold text-gray-900 mb-4 flex items-center">
         <span class="text-2xl mr-3">⭐</span>
-        Top 5 Rekomendacji IKIGAI
-      </h2>
+        Top 5 Bowl IKIGAI
+      </h3>
       
       <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
         <div v-for="rec in recommendations" :key="rec.id"
@@ -467,10 +548,10 @@ const createMixture = async () => {
     // Generuj unikalne ID
     const uniqueId = `mixture_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`
     
-    // Zapisz mieszankę lokalnie
+    // Zapisz bowl lokalnie
     const mixture = {
       id: uniqueId,
-      name: mixtureName.value || 'Moja Mieszanka',
+      name: mixtureName.value || 'Moj Bowl',
       description: `${selectedBase.value.name} + ${selectedToppings.value.length} dodatków`,
       base: { ...selectedBase.value }, // Skopiuj obiekt żeby uniknąć referencji
       toppings: selectedToppings.value.map(t => ({ ...t })), // Skopiuj tablicę obiektów
@@ -481,14 +562,14 @@ const createMixture = async () => {
       qr_code: null
     }
     
-    console.log('Zapisuję nową mieszankę:', mixture.name, 'ID:', mixture.id)
+    console.log('Zapisuję nowy bowl:', mixture.name, 'ID:', mixture.id)
     
-    // Stwórz kopię aktualnych mieszanek i dodaj nową na początku
+    // Stwórz kopię aktualnych bowls i dodaj nowy na początku
     const updatedMixtures = [mixture, ...savedMixtures.value]
     savedMixtures.value = updatedMixtures
     saveMixturesToLocalStorage()
     
-    successMessage.value = `Mieszanka "${mixture.name}" została zapisana! 🎉 Możesz teraz utworzyć dla niej zamówienie.`
+    successMessage.value = `Bowl "${mixture.name}" został zapisany! 🎉 Możesz teraz utworzyć dla niego zamówienie.`
     
     // Reset formularza po 2 sekundach
     setTimeout(() => {
@@ -499,8 +580,8 @@ const createMixture = async () => {
     }, 2000)
     
   } catch (error) {
-    console.error('Błąd zapisywania mieszanki:', error)
-    successMessage.value = 'Błąd podczas zapisywania mieszanki. Spróbuj ponownie.'
+    console.error('Błąd zapisywania bowl:', error)
+    successMessage.value = 'Błąd podczas zapisywania bowl. Spróbuj ponownie.'
     setTimeout(() => successMessage.value = '', 3000)
   } finally {
     isCreating.value = false
@@ -517,7 +598,7 @@ const createOrderFromMixture = async (mixture) => {
   isCreatingOrder.value = true
   
   try {
-    console.log('🎯 Rozpoczynam tworzenie zamówienia dla mieszanki:', mixture.name)
+    console.log('🎯 Rozpoczynam tworzenie zamówienia dla bowl:', mixture.name)
     console.log('📦 Składniki:', {
       base: mixture.base.name,
       toppings: mixture.toppings.map(t => t.name),
@@ -583,10 +664,10 @@ const createOrderFromMixture = async (mixture) => {
       console.log('📥 Odpowiedź API QR:', qrData.success ? 'Sukces!' : qrData.error)
       
       if (qrData.success) {
-        // Stwórz kopię aktualnych mieszanek
+        // Stwórz kopię aktualnych bowls
         const updatedMixtures = [...savedMixtures.value]
         
-        // Znajdź i zaktualizuj konkretną mieszankę
+        // Znajdź i zaktualizuj konkretny bowl
         const mixtureIndex = updatedMixtures.findIndex(m => m.id === mixture.id)
         if (mixtureIndex !== -1) {
           updatedMixtures[mixtureIndex] = {
@@ -599,7 +680,7 @@ const createOrderFromMixture = async (mixture) => {
           savedMixtures.value = updatedMixtures
           saveMixturesToLocalStorage()
           
-          console.log('✅ Mieszanka zaktualizowana z QR kodem:', orderData.order.id.slice(-8))
+          console.log('✅ Bowl zaktualizowany z QR kodem:', orderData.order.id.slice(-8))
         }
         
         successMessage.value = `🎉 Zamówienie dla "${mixture.name}" utworzone! QR kod jest gotowy do skanowania. 📱`
@@ -667,7 +748,7 @@ const shareQrCode = async () => {
     try {
       await navigator.share({
         title: `IKIGAI - ${selectedQrMixture.value.name}`,
-        text: `Sprawdź moją mieszankę IKIGAI: ${selectedQrMixture.value.name}`,
+        text: `Sprawdź mój bowl IKIGAI: ${selectedQrMixture.value.name}`,
         url: window.location.href
       })
     } catch (error) {
@@ -678,7 +759,7 @@ const shareQrCode = async () => {
 
 const saveMixturesToLocalStorage = () => {
   try {
-    console.log('Zapisuję mieszanki do localStorage:', savedMixtures.value.length)
+    console.log('Zapisuję bowls do localStorage:', savedMixtures.value.length)
     const mixturesData = savedMixtures.value.map(mixture => ({
       ...mixture,
       // Upewnij się, że wszystkie ważne pola są zachowane
@@ -689,9 +770,9 @@ const saveMixturesToLocalStorage = () => {
       created_at: mixture.created_at
     }))
     localStorage.setItem('ikigai_mixtures', JSON.stringify(mixturesData))
-    console.log('Mieszanki zapisane pomyślnie')
+    console.log('Bowls zapisane pomyślnie')
   } catch (error) {
-    console.error('Błąd zapisywania mieszanek do localStorage:', error)
+    console.error('Błąd zapisywania bowls do localStorage:', error)
   }
 }
 
@@ -700,9 +781,9 @@ const loadMixturesFromLocalStorage = () => {
     const saved = localStorage.getItem('ikigai_mixtures')
     if (saved) {
       const parsedMixtures = JSON.parse(saved)
-      console.log('Ładuję mieszanki z localStorage:', parsedMixtures.length)
+      console.log('Ładuję bowls z localStorage:', parsedMixtures.length)
       
-      // Sprawdź czy każda mieszanka ma wszystkie wymagane pola
+      // Sprawdź czy każdy bowl ma wszystkie wymagane pola
       savedMixtures.value = parsedMixtures.map(mixture => ({
         ...mixture,
         // Upewnij się, że ID istnieje
@@ -712,14 +793,14 @@ const loadMixturesFromLocalStorage = () => {
         qr_code: mixture.qr_code || null
       }))
       
-      console.log('Mieszanki załadowane:', savedMixtures.value.map(m => ({ 
+      console.log('Bowls załadowane:', savedMixtures.value.map(m => ({ 
         name: m.name, 
         hasQR: !!m.qr_code, 
         orderId: m.order_id?.slice(-8) 
       })))
     }
   } catch (error) {
-    console.error('Błąd ładowania zapisanych mieszanek:', error)
+    console.error('Błąd ładowania zapisanych bowls:', error)
     savedMixtures.value = []
   }
 }
@@ -754,8 +835,8 @@ const loadIngredients = async () => {
 
 // Debug functions
 const debugMixtures = () => {
-  console.log('=== DEBUG MIESZANEK ===')
-  console.log('Liczba mieszanek:', savedMixtures.value.length)
+  console.log('=== DEBUG BOWLS ===')
+  console.log('Liczba bowls:', savedMixtures.value.length)
   savedMixtures.value.forEach((mixture, index) => {
     console.log(`${index + 1}. ${mixture.name}:`, {
       id: mixture.id,
@@ -769,10 +850,10 @@ const debugMixtures = () => {
 }
 
 const clearAllMixtures = () => {
-  if (confirm('Czy na pewno chcesz usunąć wszystkie zapisane mieszanki?')) {
+  if (confirm('Czy na pewno chcesz usunąć wszystkie zapisane bowls?')) {
     savedMixtures.value = []
     localStorage.removeItem('ikigai_mixtures')
-    console.log('Wszystkie mieszanki zostały usunięte')
+    console.log('Wszystkie bowls zostały usunięte')
   }
 }
 
@@ -785,7 +866,7 @@ if (typeof window !== 'undefined') {
       console.log('🧪 Test tworzenia zamówienia dla:', savedMixtures.value[mixtureIndex].name)
       createOrderFromMixture(savedMixtures.value[mixtureIndex])
     } else {
-      console.log('❌ Brak mieszanki o indeksie', mixtureIndex)
+      console.log('❌ Brak bowl o indeksie', mixtureIndex)
     }
   }
 }

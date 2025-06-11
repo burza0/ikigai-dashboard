@@ -25,7 +25,7 @@ WEEKLY_CHALLENGES = [
     {
         "id": "vegan_warrior",
         "name": "🌿 Vegan Warrior",
-        "description": "Zamów 3 wegańskie mieszanki w tygodniu",
+        "description": "Zamów 3 wegańskie bowls w tygodniu",
         "target": 3,
         "reward_points": 75,
         "reward_type": "points",
@@ -35,7 +35,7 @@ WEEKLY_CHALLENGES = [
     {
         "id": "protein_power",
         "name": "💪 Protein Power",
-        "description": "Wybierz 4 wysokobiałkowe mieszanki",
+        "description": "Wybierz 4 wysokobiałkowe bowls",
         "target": 4,
         "reward_points": 80,
         "reward_type": "points",
@@ -45,7 +45,7 @@ WEEKLY_CHALLENGES = [
     {
         "id": "early_bird",
         "name": "🌅 Early Bird",
-        "description": "Zamów mieszankę przed 9:00 przez 3 dni",
+        "description": "Zamów bowl przed 9:00 przez 3 dni",
         "target": 3,
         "reward_points": 60,
         "reward_type": "points",
@@ -70,28 +70,28 @@ LOYALTY_LEVELS = [
         "level": 1,
         "name": "🌱 Początkujący",
         "points_required": 0,
-        "benefits": ["5% zniżka na pierwszą mieszankę"],
+        "benefits": ["5% zniżka na pierwszy bowl"],
         "badge": "🌱"
     },
     {
         "level": 2,
         "name": "🌿 Entuzjasta",
         "points_required": 200,
-        "benefits": ["10% zniżka na wszystkie mieszanki", "Dostęp do ekskluzywnych składników"],
+        "benefits": ["10% zniżka na wszystkie bowls", "Dostęp do ekskluzywnych składników"],
         "badge": "🌿"
     },
     {
         "level": 3,
         "name": "🏆 Mistrz IKIGAI",
         "points_required": 500,
-        "benefits": ["15% zniżka", "Darmowa mieszanka co miesiąc", "Pierwszeństwo nowych składników"],
+        "benefits": ["15% zniżka", "Darmowy bowl co miesiąc", "Pierwszeństwo nowych składników"],
         "badge": "🏆"
     },
     {
         "level": 4,
         "name": "👑 Legenda Zdrowia",
         "points_required": 1000,
-        "benefits": ["20% zniżka", "2 darmowe mieszanki miesięcznie", "Bezpłatna dostawa"],
+        "benefits": ["20% zniżka", "2 darmowe bowls miesięcznie", "Bezpłatna dostawa"],
         "badge": "👑"
     }
 ]
@@ -101,7 +101,7 @@ REWARDS_SHOP = [
     {
         "id": "free_topping",
         "name": "🍓 Darmowy Dodatek",
-        "description": "Dodaj jeden darmowy dodatek do mieszanki",
+        "description": "Dodaj jeden darmowy dodatek do bowl",
         "points_cost": 50,
         "type": "discount",
         "icon": "🍓"
@@ -109,15 +109,15 @@ REWARDS_SHOP = [
     {
         "id": "free_base",
         "name": "🥣 Darmowa Baza",
-        "description": "Darmowa baza do następnej mieszanki",
+        "description": "Darmowa baza do następnego bowl",
         "points_cost": 80,
         "type": "discount",
         "icon": "🥣"
     },
     {
         "id": "free_mix",
-        "name": "🎁 Darmowa Mieszanka",
-        "description": "Całkowicie darmowa mieszanka",
+        "name": "🎁 Darmowy Bowl",
+        "description": "Całkowicie darmowy bowl",
         "points_cost": 150,
         "type": "freebie",
         "icon": "🎁"
