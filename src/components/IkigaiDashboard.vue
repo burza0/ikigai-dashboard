@@ -88,6 +88,9 @@
       </div>
     </div>
 
+    <!-- Social Challenges Section (Gen Z Innovation) -->
+    <SocialChallenges />
+
     <!-- Main Dashboard Grid -->
     <div class="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 p-8">
       <!-- Dashboard Cards Grid -->
@@ -258,6 +261,7 @@
 
 <script setup lang="ts">
 import { ref, onMounted } from 'vue'
+import SocialChallenges from './SocialChallenges.vue'
 
 interface Props {
   isAdmin: boolean
