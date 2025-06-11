@@ -177,7 +177,7 @@ def validate_time_format(time_str):
 @app.route("/")
 def home():
     """Serwuje frontend Vue 3"""
-    frontend_path = os.path.join(os.path.dirname(os.path.dirname(__file__)), 'frontend', 'dist')
+    frontend_path = os.path.join(os.path.dirname(os.path.dirname(__file__)), 'dist')
     return send_from_directory(frontend_path, 'index.html')
 
 @app.route("/api/wyniki")
@@ -912,7 +912,7 @@ def qr_scanner_static(filename):
 @app.route("/<path:filename>")
 def frontend_static(filename):
     """Serwuje statyczne pliki frontendu"""
-    frontend_path = os.path.join(os.path.dirname(os.path.dirname(__file__)), 'frontend', 'dist')
+    frontend_path = os.path.join(os.path.dirname(os.path.dirname(__file__)), 'dist')
     try:
         return send_from_directory(frontend_path, filename)
     except FileNotFoundError:
