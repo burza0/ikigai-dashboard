@@ -74,9 +74,9 @@
             <div>
               <h4 class="font-semibold text-gray-900 dark:text-white mb-2">🏅 Odznaki</h4>
               <div class="flex flex-wrap gap-2">
-                <span v-for="badge in loyaltyProfile.badges" :key="badge"
+                <span v-for="badge in loyaltyProfile.badges" :key="badge.id || badge.name || badge"
                       class="text-2xl p-2 bg-yellow-50 dark:bg-yellow-900/20 rounded-lg border border-yellow-200 dark:border-yellow-700">
-                  {{ badge }}
+                  {{ getBadgeIcon(badge) }}
                 </span>
               </div>
             </div>
@@ -131,24 +131,24 @@
           </h3>
           
           <div v-if="userChallenges.length > 0" class="space-y-4">
-            <div v-for="challengeData in userChallenges" :key="challengeData.challenge.id"
+            <div v-for="challengeData in userChallenges" :key="challengeData.id"
                  class="border border-gray-200 dark:border-gray-600 rounded-lg p-4">
               
               <div class="flex items-start justify-between mb-3">
                 <div class="flex-1">
                   <div class="flex items-center mb-2">
-                    <span class="text-2xl mr-2">{{ challengeData.challenge.icon }}</span>
-                    <h4 class="font-semibold text-gray-900 dark:text-white">{{ challengeData.challenge.name }}</h4>
+                    <span class="text-2xl mr-2">{{ challengeData.icon }}</span>
+                    <h4 class="font-semibold text-gray-900 dark:text-white">{{ challengeData.name }}</h4>
                   </div>
-                  <p class="text-sm text-gray-600 dark:text-gray-400">{{ challengeData.challenge.description }}</p>
+                  <p class="text-sm text-gray-600 dark:text-gray-400">{{ challengeData.description }}</p>
                 </div>
                 <div :class="[
                   'px-2 py-1 rounded-full text-xs font-medium',
-                  challengeData.challenge.difficulty === 'easy' ? 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200' :
-                  challengeData.challenge.difficulty === 'medium' ? 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200' :
+                  challengeData.difficulty === 'easy' ? 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200' :
+                  challengeData.difficulty === 'medium' ? 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200' :
                   'bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200'
                 ]">
-                  {{ challengeData.challenge.difficulty }}
+                  {{ challengeData.difficulty }}
                 </div>
               </div>
               
@@ -156,22 +156,22 @@
               <div class="space-y-2">
                 <div class="flex justify-between text-sm">
                   <span class="text-gray-600 dark:text-gray-400">
-                    Postęp: {{ challengeData.progress }}/{{ challengeData.challenge.target }}
+                    Postęp: {{ challengeData.progress }}/{{ challengeData.target }}
                   </span>
                   <span class="text-orange-600 dark:text-orange-400 font-medium">
-                    {{ challengeData.challenge.reward_points }} punktów
+                    {{ challengeData.reward_points }} punktów
                   </span>
                 </div>
                 
                 <div class="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-2">
                   <div :class="[
                     'h-2 rounded-full transition-all duration-300',
-                    challengeData.completed ? 'bg-green-500' : 'bg-orange-500'
-                  ]" :style="{ width: `${(challengeData.progress / challengeData.challenge.target) * 100}%` }">
+                    challengeData.status === 'completed' ? 'bg-green-500' : 'bg-orange-500'
+                  ]" :style="{ width: `${(challengeData.progress / challengeData.target) * 100}%` }">
                   </div>
                 </div>
                 
-                <div v-if="challengeData.completed" class="flex items-center text-green-600 dark:text-green-400 text-sm">
+                <div v-if="challengeData.status === 'completed'" class="flex items-center text-green-600 dark:text-green-400 text-sm">
                   <span class="mr-1">✅</span> Ukończone!
                 </div>
                 
@@ -267,17 +267,55 @@
 <script setup lang="ts">
 import { ref, computed, onMounted } from 'vue'
 
+// Types
+interface LoyaltyProfile {
+  user_id: string
+  name: string
+  email: string
+  level: number
+  level_name: string
+  points: number
+  points_to_next_level: number
+  total_orders: number
+  total_spent: number
+  member_since: string
+  favorite_recipe: string
+  badges: any[]
+  next_reward: any
+}
+
+interface Level {
+  level: number
+  name: string
+  badge: string
+  points_required: number
+  benefits: string[]
+}
+
+interface Reward {
+  id: string
+  name: string
+  description: string
+  cost: number
+  points_cost: number
+  category: string
+  available: boolean
+  image: string
+  popularity: string
+  icon: string
+}
+
 // Emits
 defineEmits<{
   navigate: (view: string) => void
 }>()
 
 // Reactive data
-const loyaltyProfile = ref(null)
-const currentLevel = ref(null)
-const nextLevel = ref(null)
-const userChallenges = ref([])
-const rewardsShop = ref([])
+const loyaltyProfile = ref<LoyaltyProfile | null>(null)
+const currentLevel = ref<Level | null>(null)
+const nextLevel = ref<Level | null>(null)
+const userChallenges = ref<any[]>([])
+const rewardsShop = ref<Reward[]>([])
 const successMessage = ref('')
 const levelUpMessage = ref('')
 const newLevel = ref(0)
@@ -301,15 +339,88 @@ const levelProgress = computed(() => {
   return Math.min(Math.max(progress, 0), 100)
 })
 
+// Helper functions
+const getChallengeIcon = (challengeId: string) => {
+  const icons = {
+    'daily_protein': '💪',
+    'weekly_variety': '🌈',
+    'monthly_eco': '🌱',
+    'healthy_week': '🥗',
+    'vegan_warrior': '🌿',
+    'protein_power': '💪',
+    'early_bird': '🌅',
+    'mix_master': '🎨'
+  }
+  return icons[challengeId as keyof typeof icons] || '🎯'
+}
+
+const getRewardIcon = (rewardId: string) => {
+  const icons = {
+    'free_small': '🎁',
+    'free_premium': '💎',
+    'discount_20': '💸',
+    'ikigai_bottle': '🍶',
+    'nutrition_guide': '👨‍⚕️',
+    'free_topping': '🍓',
+    'free_base': '🥣',
+    'free_mix': '🎁',
+    'double_points': '⚡',
+    'exclusive_ingredient': '⭐'
+  }
+  return icons[rewardId as keyof typeof icons] || '🏆'
+}
+
+const getBadgeIcon = (badge: any) => {
+  if (typeof badge === 'string') return badge
+  if (badge && badge.name) {
+    const badgeIcons = {
+      'Pierwszy Krok': '🥇',
+      'Tygodniowy Streak': '🔥', 
+      'Eco Warrior': '🌱'
+    }
+    return badgeIcons[badge.name as keyof typeof badgeIcons] || '🏅'
+  }
+  return '🏅'
+}
+
 // Methods
 const loadLoyaltyProfile = async () => {
   try {
     const response = await fetch(`http://localhost:5001/api/loyalty/profile/${userId}`)
     const data = await response.json()
-    if (data.success) {
-      loyaltyProfile.value = data.profile
-      currentLevel.value = data.current_level
-      nextLevel.value = data.next_level
+    
+    console.log('Dane profilu loyalty:', data) // Debug
+    
+    if (data.status === 'success') {
+      loyaltyProfile.value = data.data
+      
+      // Znajdź odpowiednie poziomy na podstawie punktów
+      const levels = [
+        { level: 1, name: "🌱 Wellness Starter", badge: "🌱", points_required: 0, benefits: ["5% zniżka na pierwszą mieszankę"] },
+        { level: 2, name: "🌿 Health Enthusiast", badge: "🌿", points_required: 500, benefits: ["10% stała zniżka", "Dostęp do ekskluzywnych składników"] },
+        { level: 3, name: "🏆 Wellness Warrior", badge: "🏆", points_required: 1500, benefits: ["15% stała zniżka", "Darmowa mieszanka co miesiąc", "Priorytet w nowych składnikach"] },
+        { level: 4, name: "👑 IKIGAI Master", badge: "👑", points_required: 3500, benefits: ["20% stała zniżka", "2 darmowe mieszanki miesięcznie", "Bezpłatna dostawa", "Ekskluzywne wydarzenia"] }
+      ]
+      
+      // Poprawne mapowanie poziomu na podstawie punktów użytkownika
+      const userPoints = data.data.points
+      let userCurrentLevel = levels[0]
+      let userNextLevel = levels[1]
+      
+      for (let i = 0; i < levels.length; i++) {
+        if (userPoints >= levels[i].points_required) {
+          userCurrentLevel = levels[i]
+          userNextLevel = levels[i + 1] || null
+        } else {
+          break
+        }
+      }
+      
+      console.log('Aktualny poziom:', userCurrentLevel) // Debug
+      console.log('Następny poziom:', userNextLevel) // Debug
+      
+      currentLevel.value = userCurrentLevel
+      nextLevel.value = userNextLevel
     }
   } catch (error) {
     console.error('Błąd ładowania profilu lojalnościowego:', error)
@@ -320,8 +431,18 @@ const loadChallenges = async () => {
   try {
     const response = await fetch(`http://localhost:5001/api/loyalty/challenges/${userId}`)
     const data = await response.json()
-    if (data.success) {
-      userChallenges.value = data.challenges
+    
+    console.log('Dane wyzwań z API:', data) // Debug
+    
+    if (data.status === 'success') {
+      // Dodaj ikony do wyzwań
+      const challengesWithIcons = data.data.map((challenge: any) => ({
+        ...challenge,
+        icon: getChallengeIcon(challenge.id),
+        expires_date: challenge.expires
+      }))
+      userChallenges.value = challengesWithIcons
+      console.log('Wyzwania po przetworzeniu:', userChallenges.value) // Debug
     }
   } catch (error) {
     console.error('Błąd ładowania wyzwań:', error)
@@ -332,15 +453,25 @@ const loadRewardsShop = async () => {
   try {
     const response = await fetch('http://localhost:5001/api/loyalty/rewards')
     const data = await response.json()
-    if (data.success) {
-      rewardsShop.value = data.rewards
+    
+    console.log('Dane nagród z API:', data) // Debug
+    
+    if (data.status === 'success') {
+      // Przekształć dane nagród - dodaj ikony i zmień cost na points_cost
+      const rewardsWithIcons = data.data.map((reward: any) => ({
+        ...reward,
+        points_cost: reward.cost,
+        icon: getRewardIcon(reward.id)
+      }))
+      rewardsShop.value = rewardsWithIcons
+      console.log('Nagrody po przetworzeniu:', rewardsShop.value) // Debug
     }
   } catch (error) {
     console.error('Błąd ładowania sklepu nagród:', error)
   }
 }
 
-const redeemReward = async (reward) => {
+const redeemReward = async (reward: Reward) => {
   if (!loyaltyProfile.value || loyaltyProfile.value.points < reward.points_cost) {
     return
   }
@@ -423,7 +554,7 @@ const simulateOrder = async () => {
   }
 }
 
-const updateChallengeProgress = async (challengeType) => {
+const updateChallengeProgress = async (challengeType: string) => {
   try {
     const response = await fetch('http://localhost:5001/api/loyalty/challenge/progress', {
       method: 'POST',
@@ -464,7 +595,7 @@ const refreshData = async () => {
   }, 2000)
 }
 
-const formatDate = (dateString) => {
+const formatDate = (dateString: string) => {
   return new Date(dateString).toLocaleDateString('pl-PL', {
     day: 'numeric',
     month: 'short',

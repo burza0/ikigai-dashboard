@@ -214,9 +214,9 @@
                      ? 'text-green-600 dark:text-green-400'
                      : 'text-red-600 dark:text-red-400'
                  ]">
-                   Stock: {{ machine.current_stock }}/{{ machine.capacity }}
+                   Stock: {{ machine.stock_level }}%
                  </div>
-                 <div class="text-xs text-gray-500 dark:text-gray-500">{{ machine.operating_hours }}</div>
+                 <div class="text-xs text-gray-500 dark:text-gray-500">{{ machine.opening_hours }}</div>
                </div>
                
                <div v-if="userLocation" class="mt-2 text-xs text-blue-600 dark:text-blue-400">
@@ -263,21 +263,21 @@
               </span>
             </div>
             <div class="text-gray-600 dark:text-gray-400">
-              <strong>Magazyn:</strong> {{ selectedMachine.current_stock }}/{{ selectedMachine.capacity }}
+              <strong>Magazyn:</strong> {{ selectedMachine.stock_level }}% dostępności
             </div>
             <div class="text-gray-600 dark:text-gray-400">
-              <strong>Ostatnie uzupełnienie:</strong> {{ formatDate(selectedMachine.last_refill) }}
+              <strong>Ostatnia konserwacja:</strong> {{ selectedMachine.last_maintenance }}
             </div>
           </div>
         </div>
         
-        <!-- Dostępne produkty -->
+        <!-- Popularne produkty -->
         <div>
-          <h4 class="font-semibold text-gray-900 dark:text-white mb-3">🥤 Produkty</h4>
+          <h4 class="font-semibold text-gray-900 dark:text-white mb-3">🥤 Popularne produkty</h4>
           <div class="space-y-1">
-            <div v-for="product in selectedMachine.available_products" :key="product" 
+            <div v-for="product in selectedMachine.popular_items" :key="product" 
                  class="text-sm text-gray-600 dark:text-gray-400 bg-gray-100 dark:bg-gray-700 px-2 py-1 rounded">
-              {{ formatProductName(product) }}
+              {{ product }}
             </div>
           </div>
         </div>
@@ -286,10 +286,17 @@
         <div>
           <h4 class="font-semibold text-gray-900 dark:text-white mb-3">💳 Płatność</h4>
           <div class="space-y-1">
-            <div v-for="method in selectedMachine.payment_methods" :key="method"
-                 class="text-sm text-gray-600 dark:text-gray-400 flex items-center">
-              <span class="mr-2">{{ getPaymentIcon(method) }}</span>
-              {{ formatPaymentMethod(method) }}
+            <div class="text-sm text-gray-600 dark:text-gray-400 flex items-center">
+              <span class="mr-2">💳</span>
+              Karta płatnicza
+            </div>
+            <div class="text-sm text-gray-600 dark:text-gray-400 flex items-center">
+              <span class="mr-2">📱</span>
+              Płatność mobilna
+            </div>
+            <div class="text-sm text-gray-600 dark:text-gray-400 flex items-center">
+              <span class="mr-2">📱</span>
+              Kod QR
             </div>
           </div>
         </div>
@@ -342,9 +349,9 @@ const filteredMachines = computed(() => {
 
   // Filter by stock
   if (stockFilter.value === 'available') {
-    machines = machines.filter(m => m.current_stock > 0)
+    machines = machines.filter(m => m.stock_level > 0)
   } else if (stockFilter.value === 'low') {
-    machines = machines.filter(m => m.current_stock < m.capacity * 0.2)
+    machines = machines.filter(m => m.stock_level < 20)
   }
 
   return machines
@@ -355,7 +362,7 @@ const onlineCount = computed(() => {
 })
 
 const totalStock = computed(() => {
-  return vendingMachines.value.reduce((sum, m) => sum + m.current_stock, 0)
+  return vendingMachines.value.reduce((sum, m) => sum + m.stock_level, 0)
 })
 
 // Methods
@@ -363,8 +370,8 @@ const loadVendingMachines = async () => {
   try {
     const response = await fetch('http://localhost:5001/api/vending-machines')
     const data = await response.json()
-    if (data.success) {
-      vendingMachines.value = data.machines
+    if (data.status === 'success') {
+      vendingMachines.value = data.data
     }
   } catch (error) {
     console.error('Błąd ładowania automatów:', error)
@@ -403,10 +410,10 @@ const getDistance = (machine) => {
   if (!userLocation.value) return 0
   
   const R = 6371 // Radius of the Earth in km
-  const dLat = (machine.coordinates.lat - userLocation.value.lat) * Math.PI / 180
-  const dLng = (machine.coordinates.lng - userLocation.value.lng) * Math.PI / 180
+  const dLat = (machine.lat - userLocation.value.lat) * Math.PI / 180
+  const dLng = (machine.lng - userLocation.value.lng) * Math.PI / 180
   const a = Math.sin(dLat/2) * Math.sin(dLat/2) +
-           Math.cos(userLocation.value.lat * Math.PI / 180) * Math.cos(machine.coordinates.lat * Math.PI / 180) *
+           Math.cos(userLocation.value.lat * Math.PI / 180) * Math.cos(machine.lat * Math.PI / 180) *
            Math.sin(dLng/2) * Math.sin(dLng/2)
   const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a))
   const distance = R * c
@@ -425,8 +432,8 @@ const getMarkerPosition = (machine) => {
   }
   
   // Przelicz współrzędne na procenty pozycji na mapie
-  const latPercent = ((machine.coordinates.lat - bounds.south) / (bounds.north - bounds.south)) * 100
-  const lngPercent = ((machine.coordinates.lng - bounds.west) / (bounds.east - bounds.west)) * 100
+  const latPercent = ((machine.lat - bounds.south) / (bounds.north - bounds.south)) * 100
+  const lngPercent = ((machine.lng - bounds.west) / (bounds.east - bounds.west)) * 100
   
   // Odwróć lat (mapa ma origin w lewym górnym rogu)
   const topPercent = 100 - latPercent
@@ -477,7 +484,7 @@ const centerOnMachines = () => {
 
 const getDirections = (machine) => {
   // Otwiera Google Maps z nawigacją
-  const url = `https://www.google.com/maps/dir/?api=1&destination=${machine.coordinates.lat},${machine.coordinates.lng}`
+  const url = `https://www.google.com/maps/dir/?api=1&destination=${machine.lat},${machine.lng}`
   window.open(url, '_blank')
 }
 

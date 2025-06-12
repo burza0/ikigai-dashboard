@@ -201,12 +201,31 @@ const fetchRecipes = async () => {
       axios.get('http://localhost:5001/api/meal-recipes/categories')
     ])
     
-    recipes.value = recipesResponse.data.recipes || []
-    recipeCategories.value = categoriesResponse.data.categories || {}
+    console.log('🔍 Dane z API przepisów:', recipesResponse.data)
+    console.log('🔍 Dane z API kategorii:', categoriesResponse.data)
+    
+    recipes.value = recipesResponse.data.data || []
+    
+    // Przekształć tablicę kategorii na obiekt
+    if (categoriesResponse.data.status === 'success' && Array.isArray(categoriesResponse.data.data)) {
+      const categoriesArray = categoriesResponse.data.data
+      recipeCategories.value = {}
+      categoriesArray.forEach(cat => {
+        recipeCategories.value[cat.id] = {
+          name: cat.name,
+          count: cat.count || 1,
+          price_range: { min: 15, max: 25 } // Default range
+        }
+      })
+    } else {
+      recipeCategories.value = {}
+    }
     
     console.log('📋 Przepisy załadowane:', {
       recipes: recipes.value.length,
-      categories: Object.keys(recipeCategories.value).length
+      categories: Object.keys(recipeCategories.value).length,
+      recipesData: recipes.value,
+      categoriesData: recipeCategories.value
     })
     
   } catch (error) {

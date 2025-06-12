@@ -32,6 +32,7 @@
           <div class="flex items-center space-x-2 sm:space-x-4">
             <!-- Navigation Buttons -->
             <div class="hidden sm:flex items-center space-x-3">
+              <!-- Dostępne dla wszystkich -->
               <button 
                 @click="navigateTo('dashboard')"
                 :class="[
@@ -65,17 +66,6 @@
               >
                 🗺️ Mapa
               </button>
-              <button 
-                @click="navigateTo('loyalty')"
-                :class="[
-                  'px-4 py-2 text-base font-medium rounded-lg transition-colors duration-200',
-                  currentView === 'loyalty' 
-                    ? 'bg-purple-100 text-purple-700 dark:bg-purple-900 dark:text-purple-300' 
-                    : 'text-gray-600 dark:text-gray-300 hover:text-purple-600 dark:hover:text-purple-400'
-                ]"
-              >
-                🏆 Loyalty
-              </button>
               <button
                 @click="navigateTo('mobile')"
                 :class="[
@@ -87,9 +77,38 @@
               >
                 📱 Mobile QR
               </button>
+              
+              <!-- Dostępne tylko dla zalogowanych użytkowników -->
               <button 
+                v-if="currentUser"
+                @click="navigateTo('social')"
+                :class="[
+                  'px-4 py-2 text-base font-medium rounded-lg transition-colors duration-200',
+                  currentView === 'social' 
+                    ? 'bg-purple-100 text-purple-700 dark:bg-purple-900 dark:text-purple-300' 
+                    : 'text-gray-600 dark:text-gray-300 hover:text-purple-600 dark:hover:text-purple-400'
+                ]"
+              >
+                🎯 Social Challenges
+              </button>
+              <button 
+                v-if="currentUser"
+                @click="navigateTo('loyalty')"
+                :class="[
+                  'px-4 py-2 text-base font-medium rounded-lg transition-colors duration-200',
+                  currentView === 'loyalty' 
+                    ? 'bg-purple-100 text-purple-700 dark:bg-purple-900 dark:text-purple-300' 
+                    : 'text-gray-600 dark:text-gray-300 hover:text-purple-600 dark:hover:text-purple-400'
+                ]"
+              >
+                🏆 Loyalty
+              </button>
+              
+              <!-- Dostępne tylko dla administratorów -->
+              <button 
+                v-if="isAdmin"
                 @click="navigateTo('analytics')"
-                  :class="[
+                :class="[
                   'px-4 py-2 text-base font-medium rounded-lg transition-colors duration-200',
                   currentView === 'analytics' 
                     ? 'bg-purple-100 text-purple-700 dark:bg-purple-900 dark:text-purple-300' 
@@ -116,12 +135,82 @@
                 </svg>
             </button>
             
-            <!-- User Avatar -->
-            <div class="w-9 h-9 sm:w-10 sm:h-10 bg-gradient-to-r from-purple-500 to-purple-600 rounded-full flex items-center justify-center">
-              <svg class="w-5 h-5 sm:w-6 sm:h-6 text-white" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/>
-                <circle cx="12" cy="7" r="4"/>
-              </svg>
+            <!-- User Menu -->
+            <div class="relative">
+              <!-- User Avatar / Login Button -->
+              <button
+                @click="toggleUserMenu"
+                :class="[
+                  'w-9 h-9 sm:w-10 sm:h-10 rounded-full flex items-center justify-center transition-all duration-200',
+                  currentUser ? 'bg-gradient-to-r from-purple-500 to-purple-600 hover:from-purple-600 hover:to-purple-700' : 'bg-gray-400 hover:bg-gray-500'
+                ]"
+                :title="currentUser ? `Zalogowany jako: ${currentUser.name}` : 'Kliknij aby się zalogować'"
+              >
+                <svg v-if="currentUser" class="w-5 h-5 sm:w-6 sm:h-6 text-white" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/>
+                  <circle cx="12" cy="7" r="4"/>
+                </svg>
+                <svg v-else class="w-5 h-5 sm:w-6 sm:h-6 text-white" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4"/>
+                  <polyline points="10,17 15,12 10,7"/>
+                  <line x1="15" y1="12" x2="3" y2="12"/>
+                </svg>
+              </button>
+
+              <!-- User Dropdown Menu -->
+              <div
+                v-if="showUserMenu && currentUser"
+                class="absolute right-0 mt-2 w-64 bg-white dark:bg-gray-800 rounded-lg shadow-lg border border-gray-200 dark:border-gray-700 z-50"
+                @click.stop
+              >
+                <!-- User Info -->
+                <div class="p-4 border-b border-gray-200 dark:border-gray-700">
+                  <div class="flex items-center">
+                    <div class="w-10 h-10 bg-gradient-to-r from-purple-500 to-purple-600 rounded-full flex items-center justify-center">
+                      <span class="text-white font-medium text-sm">
+                        {{ currentUser.name.split(' ').map(n => n[0]).join('').toUpperCase() }}
+                      </span>
+                    </div>
+                    <div class="ml-3">
+                      <p class="text-sm font-medium text-gray-900 dark:text-white">{{ currentUser.name }}</p>
+                      <p class="text-xs text-gray-500 dark:text-gray-400">{{ currentUser.email }}</p>
+                      <p class="text-xs text-purple-600 dark:text-purple-400 font-medium">
+                        {{ currentUser.role === 'admin' ? '👑 Administrator' : '👤 Użytkownik' }}
+                      </p>
+                    </div>
+                  </div>
+                </div>
+
+                <!-- Menu Items -->
+                <div class="py-2">
+                  <button
+                    @click="navigateTo('social'); toggleUserMenu()"
+                    class="w-full px-4 py-2 text-left text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 flex items-center"
+                  >
+                    🎯 Social Challenges
+                  </button>
+                  <button
+                    @click="navigateTo('loyalty'); toggleUserMenu()"
+                    class="w-full px-4 py-2 text-left text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 flex items-center"
+                  >
+                    🏆 Program lojalnościowy
+                  </button>
+                  <button
+                    v-if="currentUser.role === 'admin'"
+                    @click="navigateTo('analytics'); toggleUserMenu()"
+                    class="w-full px-4 py-2 text-left text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 flex items-center"
+                  >
+                    📊 Panel administracyjny
+                  </button>
+                  <hr class="my-2 border-gray-200 dark:border-gray-600">
+                  <button
+                    @click="handleLogout"
+                    class="w-full px-4 py-2 text-left text-sm text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 flex items-center"
+                  >
+                    🚪 Wyloguj się
+                  </button>
+                </div>
+              </div>
             </div>
           </div>
         </div>
@@ -130,21 +219,53 @@
 
     <!-- Main Dashboard Content -->
     <main class="max-w-7xl mx-auto py-8 px-4 sm:px-6 lg:px-8">
-      <IkigaiDashboard v-if="currentView === 'dashboard'" :isAdmin="isAdmin" @navigate="navigateTo" />
+      <IkigaiDashboard v-if="currentView === 'dashboard'" :isAdmin="isAdmin" :currentUser="currentUser" @navigate="navigateTo" />
       <RecipeCreator v-else-if="currentView === 'mixer'" @navigate="navigateTo" />
       <VendingMap v-else-if="currentView === 'map'" @navigate="navigateTo" />
-      <LoyaltyProgram v-else-if="currentView === 'loyalty'" @navigate="navigateTo" />
+      <SocialChallenges v-else-if="currentView === 'social' && currentUser" @navigate="navigateTo" />
+      <LoyaltyProgram v-else-if="currentView === 'loyalty' && currentUser" @navigate="navigateTo" />
       <MobileQrApp v-else-if="currentView === 'mobile'" @back="navigateTo('dashboard')" />
-      <Analytics v-else-if="currentView === 'analytics'" @navigate="navigateTo" />
+      <Analytics v-else-if="currentView === 'analytics' && isAdmin" @navigate="navigateTo" />
+      <!-- Fallback dla nieprawomocnego dostępu -->
+      <div v-else-if="!currentUser && (currentView === 'social' || currentView === 'loyalty')" class="text-center py-12">
+        <div class="text-6xl mb-4">🔒</div>
+        <h3 class="text-xl font-semibold text-gray-900 dark:text-white mb-2">Zaloguj się aby kontynuować</h3>
+        <p class="text-gray-600 dark:text-gray-400 mb-6">Ta sekcja wymaga zalogowania</p>
+        <button 
+          @click="showLoginForm = true" 
+          class="px-6 py-3 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors"
+        >
+          🔐 Zaloguj się
+        </button>
+      </div>
+      <div v-else-if="!isAdmin && currentView === 'analytics'" class="text-center py-12">
+        <div class="text-6xl mb-4">⚠️</div>
+        <h3 class="text-xl font-semibold text-gray-900 dark:text-white mb-2">Brak uprawnień</h3>
+        <p class="text-gray-600 dark:text-gray-400 mb-6">Ta sekcja dostępna tylko dla administratorów</p>
+        <button 
+          @click="navigateTo('dashboard')" 
+          class="px-6 py-3 bg-gray-600 text-white rounded-lg hover:bg-gray-700 transition-colors"
+        >
+          🏠 Powrót do Dashboard
+        </button>
+      </div>
     </main>
+
+    <!-- Login Modal -->
+    <LoginForm
+      v-if="showLoginForm"
+      @close="showLoginForm = false"
+      @login="handleLogin"
+    />
   </div>
 </template>
 
 <script setup lang="ts">
-import { ref, defineAsyncComponent } from 'vue'
+import { ref, defineAsyncComponent, onMounted } from 'vue'
 
-// Core component - always loaded
+// Core components - always loaded
 import IkigaiDashboard from './components/IkigaiDashboard.vue'
+import LoginForm from './components/LoginForm.vue'
 
 // Lazy-loaded components with loading states
 const RecipeCreator = defineAsyncComponent({
@@ -241,15 +362,99 @@ const Analytics = defineAsyncComponent({
   timeout: 10000
 })
 
+const SocialChallenges = defineAsyncComponent({
+  loader: () => import('./components/SocialChallenges.vue'),
+  loadingComponent: {
+    template: `
+      <div class="min-h-screen bg-gray-50 dark:bg-gray-900 flex items-center justify-center">
+        <div class="text-center">
+          <div class="animate-spin rounded-full h-12 w-12 border-b-2 border-pink-600 mx-auto mb-4"></div>
+          <p class="text-gray-600 dark:text-gray-400">Ładowanie wyzwań społecznych...</p>
+        </div>
+      </div>
+    `
+  },
+  delay: 200,
+  timeout: 10000
+})
+
+// Authentication state
+const currentUser = ref(null)
+const showLoginForm = ref(false)
+const showUserMenu = ref(false)
+
 // Reactive state
 const currentView = ref('dashboard')
-const isAdmin = ref(true)
+const isAdmin = ref(false)
 const darkMode = ref(localStorage.getItem('darkMode') === 'true')
+
+// Authentication methods
+const checkAuthStatus = async () => {
+  try {
+    const response = await fetch('http://localhost:5001/api/auth/profile', {
+      credentials: 'include'
+    })
+    
+    if (response.ok) {
+      const data = await response.json()
+      if (data.status === 'success') {
+        currentUser.value = data.data
+        isAdmin.value = data.data.role === 'admin'
+      }
+    }
+  } catch (error) {
+    console.log('Nie zalogowano')
+  }
+}
+
+const handleLogin = (user) => {
+  currentUser.value = user
+  isAdmin.value = user.role === 'admin'
+  showLoginForm.value = false
+  showUserMenu.value = false
+  
+  // Show success notification
+  console.log('Zalogowano pomyślnie:', user.name)
+}
+
+const handleLogout = async () => {
+  try {
+    await fetch('http://localhost:5001/api/auth/logout', {
+      method: 'POST',
+      credentials: 'include'
+    })
+  } catch (error) {
+    console.log('Błąd podczas wylogowania')
+  }
+  
+  currentUser.value = null
+  isAdmin.value = false
+  showUserMenu.value = false
+  
+  // Redirect to dashboard
+  currentView.value = 'dashboard'
+}
+
+const toggleUserMenu = () => {
+  if (currentUser.value) {
+    showUserMenu.value = !showUserMenu.value
+  } else {
+    showLoginForm.value = true
+  }
+}
+
+// Close user menu when clicking outside
+const handleClickOutside = (event) => {
+  if (showUserMenu.value && !event.target.closest('.relative')) {
+    showUserMenu.value = false
+  }
+}
 
 // Performance: Preload next likely component
 const preloadComponent = (componentName) => {
   if (componentName === 'mixer') RecipeCreator
   else if (componentName === 'map') VendingMap
+  else if (componentName === 'social') SocialChallenges
   else if (componentName === 'loyalty') LoyaltyProgram
   else if (componentName === 'mobile') MobileQrApp
   else if (componentName === 'analytics') Analytics
@@ -292,7 +497,11 @@ const initializeTheme = () => {
 }
 
 // Lifecycle
-initializeTheme()
+onMounted(() => {
+  initializeTheme()
+  checkAuthStatus()
+  document.addEventListener('click', handleClickOutside)
+})
 </script>
 
 <style>

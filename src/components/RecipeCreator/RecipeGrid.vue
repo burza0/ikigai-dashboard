@@ -128,19 +128,19 @@
           <div class="flex items-start justify-between mb-3">
             <h3 class="font-bold text-lg text-gray-900 leading-tight">{{ recipe.name }}</h3>
             <div class="text-right ml-4">
-              <div class="text-lg font-bold text-purple-600">{{ recipe.total_price.toFixed(2) }}zł</div>
+              <div class="text-lg font-bold text-purple-600">{{ recipe.price.toFixed(2) }}zł</div>
               <div class="text-xs text-gray-500">⏱️ {{ recipe.prep_time }}</div>
             </div>
           </div>
           
-          <!-- Health Score & Popularity -->
+          <!-- Health Score & Category -->
           <div class="flex items-center justify-between mb-3">
             <div class="flex items-center space-x-3">
               <div class="flex items-center">
                 <span class="text-green-600 font-medium">💚 {{ recipe.health_score }}/100</span>
               </div>
               <div class="flex items-center">
-                <span class="text-blue-600 font-medium">👥 {{ recipe.popularity }}%</span>
+                <span class="text-blue-600 font-medium">🍽️ {{ recipe.difficulty }}</span>
               </div>
             </div>
             <div class="text-xs text-gray-500 bg-gray-100 px-2 py-1 rounded">
@@ -151,20 +151,20 @@
           <!-- Description -->
           <p class="text-sm text-gray-600 mb-4 line-clamp-2">{{ recipe.description }}</p>
           
-          <!-- Health Benefits Tags -->
+          <!-- Tags -->
           <div class="flex flex-wrap gap-1 mb-4">
             <span 
-              v-for="benefit in recipe.health_benefits.slice(0, 3)" 
-              :key="benefit"
+              v-for="tag in recipe.tags.slice(0, 3)" 
+              :key="tag"
               class="px-2 py-1 bg-green-100 text-green-700 rounded-full text-xs font-medium"
             >
-              {{ benefit }}
+              {{ tag }}
             </span>
             <span 
-              v-if="recipe.health_benefits.length > 3"
+              v-if="recipe.tags.length > 3"
               class="px-2 py-1 bg-gray-100 text-gray-600 rounded-full text-xs"
             >
-              +{{ recipe.health_benefits.length - 3 }} więcej
+              +{{ recipe.tags.length - 3 }} więcej
             </span>
           </div>
         </div>
@@ -173,7 +173,7 @@
         <div class="px-6 py-4 bg-gray-50 border-t border-gray-100">
           <div class="flex items-center justify-between">
             <div class="text-sm text-gray-600">
-              🥄 {{ getBaseIngredientName(recipe.base) }} + {{ recipe.toppings.length }} dodatków
+              🥄 {{ recipe.ingredients ? recipe.ingredients.length : 0 }} składników
             </div>
             <div class="flex space-x-2">
               <button 
@@ -243,7 +243,7 @@ const filteredRecipes = computed(() => {
     filtered = filtered.filter(recipe => 
       recipe.name.toLowerCase().includes(query) ||
       recipe.description.toLowerCase().includes(query) ||
-      recipe.health_benefits.some(benefit => benefit.toLowerCase().includes(query))
+      (recipe.tags && recipe.tags.some(tag => tag.toLowerCase().includes(query)))
     )
   }
   
@@ -255,7 +255,7 @@ const filteredRecipes = computed(() => {
   // Price range filter
   if (selectedPriceRange.value) {
     filtered = filtered.filter(recipe => {
-      const price = recipe.total_price
+      const price = recipe.price
       switch (selectedPriceRange.value) {
         case '0-15': return price <= 15
         case '15-20': return price > 15 && price <= 20
@@ -270,7 +270,7 @@ const filteredRecipes = computed(() => {
   if (activeQuickFilters.value.length > 0) {
     filtered = filtered.filter(recipe => 
       activeQuickFilters.value.some(filter => 
-        recipe.health_benefits.includes(filter)
+        recipe.tags && recipe.tags.includes(filter)
       )
     )
   }

@@ -88,15 +88,46 @@
       </div>
     </div>
 
-    <!-- Social Challenges Section (Gen Z Innovation) -->
-    <SocialChallenges />
+    <!-- Login Prompt dla niezalogowanych użytkowników -->
+    <div v-if="!currentUser" class="bg-gradient-to-br from-purple-50 to-purple-100 dark:from-purple-900/30 dark:to-purple-800/30 rounded-xl p-8 border-2 border-dashed border-purple-300 dark:border-purple-600">
+      <div class="text-center">
+        <div class="w-16 h-16 mx-auto mb-4 bg-purple-200 dark:bg-purple-700 rounded-full flex items-center justify-center">
+          <svg class="w-8 h-8 text-purple-600 dark:text-purple-300" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4"/>
+            <polyline points="10,17 15,12 10,7"/>
+            <line x1="15" y1="12" x2="3" y2="12"/>
+          </svg>
+        </div>
+        <h3 class="text-xl font-semibold text-purple-900 dark:text-purple-100 mb-2">🔓 Odkryj więcej możliwości!</h3>
+        <p class="text-purple-700 dark:text-purple-300 mb-6">
+          Zaloguj się aby uzyskać dostęp do Social Challenges, programu lojalnościowego i wielu innych funkcji IKIGAI
+        </p>
+        <div class="flex justify-center space-x-4">
+          <button 
+            @click="emit('showLogin')"
+            class="px-6 py-3 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors font-medium"
+          >
+            🔐 Zaloguj się
+          </button>
+          <button 
+            @click="emit('showRegister')"
+            class="px-6 py-3 bg-transparent border-2 border-purple-600 text-purple-600 dark:text-purple-300 rounded-lg hover:bg-purple-600 hover:text-white transition-colors font-medium"
+          >
+            📝 Utwórz konto
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Social Challenges Section (Gen Z Innovation) - tylko dla zalogowanych -->
+    <SocialChallenges v-if="currentUser" />
 
     <!-- Main Dashboard Grid -->
     <div class="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 p-8">
       <!-- Dashboard Cards Grid -->
       <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
         <!-- Kreator Bowl - Purple (GŁÓWNA FUNKCJA) -->
-        <div @click="$emit('navigate', 'mixer')" class="md:col-span-1 bg-gradient-to-br from-purple-500 to-purple-600 rounded-xl p-8 text-white hover:scale-[1.02] transition-transform duration-200 cursor-pointer">
+        <div @click="emit('navigate', 'mixer')" class="md:col-span-1 bg-gradient-to-br from-purple-500 to-purple-600 rounded-xl p-8 text-white hover:scale-[1.02] transition-transform duration-200 cursor-pointer">
           <div class="flex items-center mb-6">
             <svg class="w-11 h-11 mr-4 text-purple-200" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
               <path d="M12 6V4a2 2 0 1 0-4 0v2"/>
@@ -112,7 +143,7 @@
         </div>
 
         <!-- Orders & QR Workflow - Blue (Admin only) -->
-        <div v-if="isAdmin" class="md:col-span-1 bg-gradient-to-br from-blue-500 to-blue-600 rounded-xl p-8 text-white hover:scale-[1.02] transition-transform duration-200 cursor-pointer" @click="$emit('navigate', 'orders')">
+        <div v-if="isAdmin" class="md:col-span-1 bg-gradient-to-br from-blue-500 to-blue-600 rounded-xl p-8 text-white hover:scale-[1.02] transition-transform duration-200 cursor-pointer" @click="emit('navigate', 'orders')">
           <div class="flex items-center mb-6">
             <svg class="w-11 h-11 mr-4 text-blue-200" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
               <rect x="3" y="3" width="18" height="18" rx="2" ry="2"/>
@@ -126,7 +157,7 @@
         </div>
 
         <!-- Analytics & Reports - Dark blue (Admin only) -->
-        <div v-if="isAdmin" class="md:col-span-1 bg-gradient-to-br from-slate-700 to-slate-800 rounded-xl p-8 text-white hover:scale-[1.02] transition-transform duration-200 cursor-pointer" @click="$emit('navigate', 'analytics')">
+        <div v-if="isAdmin" class="md:col-span-1 bg-gradient-to-br from-slate-700 to-slate-800 rounded-xl p-8 text-white hover:scale-[1.02] transition-transform duration-200 cursor-pointer" @click="emit('navigate', 'analytics')">
           <div class="flex items-center mb-6">
             <svg class="w-11 h-11 mr-4 text-slate-300" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
               <rect x="3" y="3" width="18" height="18" rx="2" ry="2"/>
@@ -140,7 +171,7 @@
         </div>
 
         <!-- Mobile QR App - Blue (General users) -->
-        <div @click="$emit('navigate', 'mobile')" class="md:col-span-1 bg-gradient-to-br from-blue-500 to-blue-600 rounded-xl p-8 text-white hover:scale-[1.02] transition-transform duration-200 cursor-pointer">
+        <div @click="emit('navigate', 'mobile')" class="md:col-span-1 bg-gradient-to-br from-blue-500 to-blue-600 rounded-xl p-8 text-white hover:scale-[1.02] transition-transform duration-200 cursor-pointer">
           <div class="flex items-center mb-6">
             <svg class="w-11 h-11 mr-4 text-blue-200" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
               <rect x="3" y="3" width="18" height="18" rx="2" ry="2"/>
@@ -154,7 +185,7 @@
         </div>
 
         <!-- Mapa Automatów - Green -->
-        <div @click="$emit('navigate', 'map')" class="md:col-span-1 bg-gradient-to-br from-green-500 to-green-600 rounded-xl p-8 text-white hover:scale-[1.02] transition-transform duration-200 cursor-pointer">
+        <div @click="emit('navigate', 'map')" class="md:col-span-1 bg-gradient-to-br from-green-500 to-green-600 rounded-xl p-8 text-white hover:scale-[1.02] transition-transform duration-200 cursor-pointer">
           <div class="flex items-center mb-6">
             <svg class="w-11 h-11 mr-4 text-green-200" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
               <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/>
@@ -167,8 +198,8 @@
           <div class="text-green-200 text-base">Znajdź najbliższy automat 📍</div>
         </div>
 
-        <!-- Program Lojalnościowy - Gold/Yellow -->
-        <div @click="$emit('navigate', 'loyalty')" class="md:col-span-1 bg-gradient-to-br from-yellow-500 to-yellow-600 rounded-xl p-8 text-white hover:scale-[1.02] transition-transform duration-200 cursor-pointer">
+        <!-- Program Lojalnościowy - Gold/Yellow - tylko dla zalogowanych -->
+        <div v-if="currentUser" @click="emit('navigate', 'loyalty')" class="md:col-span-1 bg-gradient-to-br from-yellow-500 to-yellow-600 rounded-xl p-8 text-white hover:scale-[1.02] transition-transform duration-200 cursor-pointer">
           <div class="flex items-center mb-6">
             <svg class="w-11 h-11 mr-4 text-yellow-200" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
               <polygon points="12,2 15.09,8.26 22,9.27 17,14.14 18.18,21.02 12,17.77 5.82,21.02 7,14.14 2,9.27 8.91,8.26"/>
@@ -265,15 +296,30 @@ import SocialChallenges from './SocialChallenges.vue'
 
 interface Props {
   isAdmin: boolean
+  currentUser: any | null
+}
+
+interface Recommendation {
+  id: string
+  name: string
+  description: string
+  total_price: number
+  price: number
+  category: string
+  health_score: number
+  tags: string[]
+  image: string
 }
 
 defineProps<Props>()
-defineEmits<{
-  navigate: (view: string) => void
+const emit = defineEmits<{
+  navigate: [view: string],
+  showLogin: [],
+  showRegister: []
 }>()
 
 // Reactive data
-const recommendations = ref([])
+const recommendations = ref<Recommendation[]>([])
 const loadingRecommendations = ref(false)
 const orders = ref([])
 const analytics = ref({
@@ -296,11 +342,22 @@ const fetchRecommendations = async () => {
     
     console.log('API Response:', data)
     
-    if (data.success) {
-      recommendations.value = data.recommendations
+    if (data.status === 'success' && data.data && data.data.featured_recipes) {
+      // Mapowanie danych z API na format oczekiwany przez frontend
+      recommendations.value = data.data.featured_recipes.map((recipe: any) => ({
+        id: recipe.id,
+        name: recipe.name,
+        description: recipe.reason || 'Polecany przez społeczność IKIGAI',
+        total_price: recipe.price,
+        price: recipe.price,
+        category: recipe.category,
+        health_score: recipe.health_score,
+        tags: [recipe.category, `${recipe.health_score}% zdrowy`],
+        image: recipe.image
+      }))
       console.log('Recommendations loaded:', recommendations.value)
     } else {
-      console.error('API returned success: false')
+      console.error('API returned unexpected structure:', data)
     }
   } catch (error) {
     console.error('Error fetching recommendations:', error)
