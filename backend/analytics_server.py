@@ -17,19 +17,41 @@ from functools import wraps
 
 print("🎯 IKIGAI Analytics Server with Database - Uruchamianie...")
 
-# Ścieżka do bazy danych
-DB_PATH = os.path.join(os.path.dirname(__file__), 'ikigai.db')
+# Sprawdź czy używamy PostgreSQL (Heroku) czy SQLite (lokalnie)
+DATABASE_URL = os.environ.get('DATABASE_URL')
+if DATABASE_URL:
+    print("🐘 Wykryto PostgreSQL na Heroku")
+    # Napraw URL dla psycopg2 (Heroku używa postgres://, ale psycopg2 wymaga postgresql://)
+    if DATABASE_URL.startswith('postgres://'):
+        DATABASE_URL = DATABASE_URL.replace('postgres://', 'postgresql://', 1)
+    
+    # Import dla PostgreSQL
+    import psycopg2
+    import psycopg2.extras
+    DB_TYPE = 'postgresql'
+    DB_PATH = DATABASE_URL
+    print(f"📊 PostgreSQL Database: {DATABASE_URL.split('@')[1].split('/')[0] if '@' in DATABASE_URL else 'configured'}")
+else:
+    print("🗃️ Używam lokalnej bazy SQLite")
+    DB_TYPE = 'sqlite'
+    # Ścieżka do bazy danych SQLite
+    DB_PATH = os.path.join(os.path.dirname(__file__), 'ikigai.db')
 
 # Ścieżka do plików statycznych frontendu
 STATIC_PATH = os.path.join(os.path.dirname(os.path.dirname(__file__)), 'dist')
 
 # Sprawdź czy baza istnieje (ale nie kończ aplikacji jeśli nie ma)
-DB_AVAILABLE = os.path.exists(DB_PATH)
-if not DB_AVAILABLE:
-    print(f"⚠️ Baza danych nie istnieje: {DB_PATH}")
-    print("🔄 Aplikacja będzie działać w trybie bez bazy danych (statyczne dane)")
+if DB_TYPE == 'sqlite':
+    DB_AVAILABLE = os.path.exists(DB_PATH)
+    if not DB_AVAILABLE:
+        print(f"⚠️ Baza danych SQLite nie istnieje: {DB_PATH}")
+        print("🔄 Aplikacja będzie działać w trybie bez bazy danych (statyczne dane)")
+    else:
+        print(f"✅ Baza danych SQLite dostępna: {DB_PATH}")
 else:
-    print(f"✅ Baza danych dostępna: {DB_PATH}")
+    # PostgreSQL zawsze dostępne na Heroku
+    DB_AVAILABLE = True
+    print("✅ PostgreSQL dostępne")
 
 # Tworzymy aplikację Flask
 app = Flask(__name__)

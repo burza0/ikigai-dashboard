@@ -7,4 +7,7 @@ SQLAlchemy==2.0.35
 Werkzeug==3.0.6
 reportlab==4.2.2
 qrcode==8.0
-Pillow==10.4.0 
+Pillow==10.4.0
+psycopg2-binary==2.9.9
+psycopg2-binary==2.9.9
+psycopg2-binary==2.9.9 
