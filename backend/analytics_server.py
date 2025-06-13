@@ -26,37 +26,27 @@ if DATABASE_URL:
         DATABASE_URL = DATABASE_URL.replace('postgres://', 'postgresql://', 1)
     
     # Import dla PostgreSQL
-    import psycopg2
-    import psycopg2.extras
-    DB_TYPE = 'postgresql'
-    DB_PATH = DATABASE_URL
-    print(f"📊 PostgreSQL Database: {DATABASE_URL.split('@')[1].split('/')[0] if '@' in DATABASE_URL else 'configured'}")
+    try:
+        import psycopg2
+        import psycopg2.extras
+        DB_TYPE = 'postgresql'
+        DB_PATH = DATABASE_URL
+        DB_AVAILABLE = True
+        print(f"📊 PostgreSQL Database: {DATABASE_URL.split('@')[1].split('/')[0] if '@' in DATABASE_URL else 'configured'}")
+    except ImportError:
+        print("❌ Brak psycopg2 - używam SQLite")
+        DB_TYPE = 'sqlite'
+        DB_PATH = os.path.join(os.path.dirname(__file__), 'ikigai.db')
+        DB_AVAILABLE = os.path.exists(DB_PATH)
 else:
     print("🗃️ Używam lokalnej bazy SQLite")
     DB_TYPE = 'sqlite'
     # Ścieżka do bazy danych SQLite
     DB_PATH = os.path.join(os.path.dirname(__file__), 'ikigai.db')
+    DB_AVAILABLE = os.path.exists(DB_PATH)
 
 # Ścieżka do plików statycznych frontendu
 STATIC_PATH = os.path.join(os.path.dirname(os.path.dirname(__file__)), 'dist')
-
-# Sprawdź czy baza istnieje (ale nie kończ aplikacji jeśli nie ma)
-if DB_TYPE == 'sqlite':
-    DB_AVAILABLE = os.path.exists(DB_PATH)
-    if not DB_AVAILABLE:
-        print(f"⚠️ Baza danych SQLite nie istnieje: {DB_PATH}")
-        print("🔄 Aplikacja będzie działać w trybie bez bazy danych (statyczne dane)")
-    else:
-        print(f"✅ Baza danych SQLite dostępna: {DB_PATH}")
-else:
-    # PostgreSQL zawsze dostępne na Heroku
-    DB_AVAILABLE = True
-    print("✅ PostgreSQL dostępne")
-
-# Tworzymy aplikację Flask
-app = Flask(__name__)
-CORS(app, supports_credentials=True)
-app.secret_key = 'ikigai_secret_key_2024'  # W produkcji: os.environ.get('SECRET_KEY')
 
 print("📊 IKIGAI Analytics Server v4.0 with SQLite - Ready!")
 print("🌐 Endpoints dostępne na http://localhost:5001")
@@ -68,21 +58,25 @@ print(f"🗄️ Database: {DB_PATH}")
 
 @contextmanager
 def get_db_connection():
-    """Context manager dla połączeń z bazą"""
+    """Context manager dla połączeń z bazą - SQLite + PostgreSQL"""
     if not DB_AVAILABLE:
-        # Jeśli baza nie istnieje, zwróć None
         yield None
         return
         
+    conn = None
     try:
-        conn = sqlite3.connect(DB_PATH)
-        conn.row_factory = sqlite3.Row
-        yield conn
+        if DB_TYPE == 'postgresql':
+            conn = psycopg2.connect(DB_PATH)
+            yield conn
+        else:
+            conn = sqlite3.connect(DB_PATH)
+            conn.row_factory = sqlite3.Row
+            yield conn
     except Exception as e:
-        print(f"⚠️ Błąd połączenia z bazą: {e}")
+        print(f"⚠️ Błąd połączenia z bazą {DB_TYPE}: {e}")
         yield None
     finally:
-        if 'conn' in locals() and conn:
+        if conn:
             conn.close()
 
 def parse_json_field(value):
@@ -1189,9 +1183,37 @@ def get_loyalty_profile(user_id):
     """Profil użytkownika w programie lojalnościowym z bazy danych"""
     try:
         with get_db_connection() as conn:
-            user = conn.execute("""
-                SELECT * FROM users WHERE id = ?
-            """, (user_id,)).fetchone()
+            if not conn:
+                # Fallback na statyczne dane
+                return jsonify({
+                    "status": "success",
+                    "data": {
+                        "user_id": "web_user",
+                        "name": "Demo User",
+                        "email": "demo@ikigai.com",
+                        "level": 2,
+                        "level_name": "🌿 Health Enthusiast",
+                        "points": 2847,
+                        "points_to_next_level": 653,
+                        "total_orders": 15,
+                        "total_spent": 247.50,
+                        "member_since": "2024-01-15",
+                        "favorite_recipe": "Energetyczny Start Dnia",
+                        "badges": ["early_adopter", "green_warrior"],
+                        "next_reward": {
+                            "points_needed": 153,
+                            "reward": "Darmowa średnia mieszanka"
+                        }
+                    }
+                })
+            
+            # Uniwersalne zapytanie SQL
+            if DB_TYPE == 'postgresql':
+                cursor = conn.cursor(cursor_factory=psycopg2.extras.DictCursor)
+                cursor.execute("SELECT * FROM users WHERE id = %s", (user_id,))
+                user = cursor.fetchone()
+            else:
+                user = conn.execute("SELECT * FROM users WHERE id = ?", (user_id,)).fetchone()
             
             if not user:
                 return jsonify({
