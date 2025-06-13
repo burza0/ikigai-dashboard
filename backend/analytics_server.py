@@ -799,8 +799,86 @@ def get_meal_recipe_by_id(recipe_id):
 @app.route('/api/recommendations', methods=['GET'])
 def get_recommendations():
     """Rekomendacje przepisów z bazy danych"""
+    # Statyczne dane gdy baza nie jest dostępna
+    if not DB_AVAILABLE:
+        return jsonify({
+            "status": "success",
+            "data": {
+                "featured_recipes": [
+                    {
+                        "id": "energetic_morning",
+                        "name": "Energetyczny Start Dnia",
+                        "category": "breakfast",
+                        "health_score": 94,
+                        "price": 16.60,
+                        "image": "/images/energetic_morning.jpg",
+                        "reason": "Polecany przez społeczność IKIGAI"
+                    },
+                    {
+                        "id": "detox_green",
+                        "name": "Detox Green Morning",
+                        "category": "detox",
+                        "health_score": 98,
+                        "price": 21.00,
+                        "image": "/images/detox_green.jpg",
+                        "reason": "Najlepszy na detoks organizmu"
+                    },
+                    {
+                        "id": "protein_power",
+                        "name": "Power Protein Bowl",
+                        "category": "workout",
+                        "health_score": 91,
+                        "price": 18.30,
+                        "image": "/images/protein_power.jpg",
+                        "reason": "Idealny po treningu"
+                    }
+                ],
+                "trending_ingredients": [
+                    {
+                        "id": "spirulina_powder",
+                        "name": "Spirulina Powder BIO",
+                        "category": "superfoods",
+                        "price": 4.50,
+                        "trend": "+15%",
+                        "reason": "Popularny wybór tego miesiąca"
+                    },
+                    {
+                        "id": "protein_vanilla",
+                        "name": "Protein Vanilla Premium",
+                        "category": "proteins",
+                        "price": 8.20,
+                        "trend": "+12%",
+                        "reason": "Najczęściej dodawany do bowli"
+                    }
+                ],
+                "personalized": [],
+                "seasonal": {
+                    "title": "Sezonowe rekomendacje",
+                    "season": "Lato 2024",
+                    "items": [
+                        {
+                            "id": "coconut_water",
+                            "name": "Woda Kokosowa Premium",
+                            "category": "liquids",
+                            "price": 5.80,
+                            "trend": "+25%",
+                            "reason": "Doskonałe na upały"
+                        }
+                    ]
+                }
+            }
+        })
+    
     try:
         with get_db_connection() as conn:
+            if not conn:
+                # Zwróć statyczne dane gdy baza nie jest dostępna (rekurencyjnie)
+                temp_db_available = globals()['DB_AVAILABLE']
+                globals()['DB_AVAILABLE'] = False
+                result = get_recommendations()
+                globals()['DB_AVAILABLE'] = temp_db_available
+                return result
+            
             # Pobierz popularne przepisy
             featured_recipes = conn.execute("""
                 SELECT r.id, r.name, r.category_id, r.health_score, r.price, r.popularity_score
