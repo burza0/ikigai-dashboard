@@ -23,11 +23,13 @@ DB_PATH = os.path.join(os.path.dirname(__file__), 'ikigai.db')
 # Ścieżka do plików statycznych frontendu
 STATIC_PATH = os.path.join(os.path.dirname(os.path.dirname(__file__)), 'dist')
 
-# Sprawdź czy baza istnieje
-if not os.path.exists(DB_PATH):
-    print(f"❌ Baza danych nie istnieje: {DB_PATH}")
-    print("Uruchom najpierw: python3 init_ikigai_db.py")
-    exit(1)
+# Sprawdź czy baza istnieje (ale nie kończ aplikacji jeśli nie ma)
+DB_AVAILABLE = os.path.exists(DB_PATH)
+if not DB_AVAILABLE:
+    print(f"⚠️ Baza danych nie istnieje: {DB_PATH}")
+    print("🔄 Aplikacja będzie działać w trybie bez bazy danych (statyczne dane)")
+else:
+    print(f"✅ Baza danych dostępna: {DB_PATH}")
 
 # Tworzymy aplikację Flask
 app = Flask(__name__)
@@ -45,12 +47,21 @@ print(f"🗄️ Database: {DB_PATH}")
 @contextmanager
 def get_db_connection():
     """Context manager dla połączeń z bazą"""
-    conn = sqlite3.connect(DB_PATH)
-    conn.row_factory = sqlite3.Row
+    if not DB_AVAILABLE:
+        # Jeśli baza nie istnieje, zwróć None
+        yield None
+        return
+        
     try:
+        conn = sqlite3.connect(DB_PATH)
+        conn.row_factory = sqlite3.Row
         yield conn
+    except Exception as e:
+        print(f"⚠️ Błąd połączenia z bazą: {e}")
+        yield None
     finally:
-        conn.close()
+        if 'conn' in locals() and conn:
+            conn.close()
 
 def parse_json_field(value):
     """Parsuje pole JSON z bazy danych"""
@@ -84,8 +95,16 @@ def verify_password(password, password_hash):
 
 def setup_auth_tables():
     """Rozszerz tabelę users o kolumny autentyfikacji"""
+    if not DB_AVAILABLE:
+        print("⚠️ Pomijam setup bazy danych - baza niedostępna")
+        return
+        
     try:
         with get_db_connection() as conn:
+            if not conn:
+                print("⚠️ Brak połączenia z bazą - pomijam setup")
+                return
+            
             # Sprawdź czy kolumny już istnieją
             cursor = conn.execute("PRAGMA table_info(users)")
             existing_columns = [column[1] for column in cursor.fetchall()]
@@ -481,7 +500,124 @@ def get_user_favorites():
 def get_meal_recipes():
     """Lista wszystkich przepisów na mieszanki z bazy danych"""
     try:
+        if not DB_AVAILABLE:
+            # Zwróć statyczne dane gdy baza nie istnieje
+            return jsonify({
+                "status": "success",
+                "data": [
+                    {
+                        "id": "energetic_morning",
+                        "name": "Energetyczny Start Dnia",
+                        "category": "breakfast",
+                        "category_name": "Śniadanie",
+                        "description": "Idealny boost energii na start dnia",
+                        "long_description": "Pełnowartościowy posiłek z wysokiej jakości białkami i superfoods",
+                        "price": 16.60,
+                        "health_score": 94,
+                        "calories": 385,
+                        "protein": 25,
+                        "carbs": 35,
+                        "fat": 12,
+                        "fiber": 8,
+                        "sugar": 15,
+                        "prep_time": 3,
+                        "difficulty": "łatwy",
+                        "tags": ["wysokobiałkowy", "energetyczny", "organiczny"],
+                        "is_featured": True,
+                        "popularity_score": 95
+                    },
+                    {
+                        "id": "detox_green",
+                        "name": "Detox Green Morning",
+                        "category": "detox",
+                        "category_name": "Detox",
+                        "description": "Oczyszczający zielony shake",
+                        "long_description": "Mieszanka zielonych superfoods do detoksykacji organizmu",
+                        "price": 21.00,
+                        "health_score": 98,
+                        "calories": 320,
+                        "protein": 18,
+                        "carbs": 28,
+                        "fat": 8,
+                        "fiber": 12,
+                        "sugar": 10,
+                        "prep_time": 4,
+                        "difficulty": "średni",
+                        "tags": ["detox", "zielony", "antyoksydanty"],
+                        "is_featured": True,
+                        "popularity_score": 89
+                    },
+                    {
+                        "id": "protein_power",
+                        "name": "Power Protein Bowl",
+                        "category": "workout",
+                        "category_name": "Trening",
+                        "description": "Maksymalna dawka białka",
+                        "long_description": "Idealny po treningu - wysokie białko i aminokwasy",
+                        "price": 18.30,
+                        "health_score": 91,
+                        "calories": 420,
+                        "protein": 35,
+                        "carbs": 30,
+                        "fat": 15,
+                        "fiber": 6,
+                        "sugar": 12,
+                        "prep_time": 3,
+                        "difficulty": "łatwy",
+                        "tags": ["post-workout", "wysokobiałkowy", "regeneracja"],
+                        "is_featured": False,
+                        "popularity_score": 82
+                    },
+                    {
+                        "id": "focus_brain",
+                        "name": "Focus Brain Boost",
+                        "category": "cognitive",
+                        "category_name": "Koncentracja",
+                        "description": "Wsparcie dla mózgu i koncentracji",
+                        "long_description": "Składniki wspierające funkcje kognitywne i pamięć",
+                        "price": 19.90,
+                        "health_score": 93,
+                        "calories": 350,
+                        "protein": 20,
+                        "carbs": 32,
+                        "fat": 10,
+                        "fiber": 9,
+                        "sugar": 8,
+                        "prep_time": 4,
+                        "difficulty": "średni",
+                        "tags": ["nootropic", "koncentracja", "adaptogeny"],
+                        "is_featured": True,
+                        "popularity_score": 87
+                    },
+                    {
+                        "id": "zen_balance",
+                        "name": "Zen Balance",
+                        "category": "relaxation",
+                        "category_name": "Relaks",
+                        "description": "Spokój i równowaga",
+                        "long_description": "Relaksujący blend z ashwagandha i magnesem",
+                        "price": 17.50,
+                        "health_score": 89,
+                        "calories": 295,
+                        "protein": 15,
+                        "carbs": 25,
+                        "fat": 7,
+                        "fiber": 10,
+                        "sugar": 6,
+                        "prep_time": 3,
+                        "difficulty": "łatwy",
+                        "tags": ["relaksujący", "adaptogeny", "stres"],
+                        "is_featured": False,
+                        "popularity_score": 76
+                    }
+                ]
+            })
+        
         with get_db_connection() as conn:
+            if not conn:
+                # Fallback gdy nie można połączyć się z bazą
+                return get_meal_recipes()  # Rekurencyjne wywołanie dla statycznych danych
+            
             recipes = conn.execute("""
                 SELECT r.*, c.name as category_name
                 FROM recipes r
