@@ -17,22 +17,32 @@ from functools import wraps
 
 print("🎯 IKIGAI Analytics Server with Database - Uruchamianie...")
 
+# Tworzymy aplikację Flask
+app = Flask(__name__)
+app.secret_key = os.environ.get('SECRET_KEY', 'ikigai-dev-secret-key-2024')
+
+# Konfiguracja CORS
+CORS(app, resources={
+    r"/api/*": {
+        "origins": ["*"],
+        "methods": ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
+        "allow_headers": ["Content-Type", "Authorization"]
+    }
+})
+
 # Sprawdź czy używamy PostgreSQL (Heroku) czy SQLite (lokalnie)
 DATABASE_URL = os.environ.get('DATABASE_URL')
 if DATABASE_URL:
     print("🐘 Wykryto PostgreSQL na Heroku")
-    # Napraw URL dla psycopg2 (Heroku używa postgres://, ale psycopg2 wymaga postgresql://)
     if DATABASE_URL.startswith('postgres://'):
         DATABASE_URL = DATABASE_URL.replace('postgres://', 'postgresql://', 1)
     
-    # Import dla PostgreSQL
     try:
         import psycopg2
         import psycopg2.extras
         DB_TYPE = 'postgresql'
         DB_PATH = DATABASE_URL
-        DB_AVAILABLE = True
-        print(f"📊 PostgreSQL Database: {DATABASE_URL.split('@')[1].split('/')[0] if '@' in DATABASE_URL else 'configured'}")
+        print("✅ PostgreSQL połączone")
     except ImportError:
         print("❌ Brak psycopg2 - używam SQLite")
         DB_TYPE = 'sqlite'
@@ -41,20 +51,28 @@ if DATABASE_URL:
 else:
     print("🗃️ Używam lokalnej bazy SQLite")
     DB_TYPE = 'sqlite'
-    # Ścieżka do bazy danych SQLite
     DB_PATH = os.path.join(os.path.dirname(__file__), 'ikigai.db')
+
+# Sprawdź dostępność bazy
+if DB_TYPE == 'sqlite':
     DB_AVAILABLE = os.path.exists(DB_PATH)
+    if DB_AVAILABLE:
+        print(f"✅ SQLite dostępne: {DB_PATH}")
+    else:
+        print(f"⚠️ SQLite niedostępne: {DB_PATH}")
+else:
+    DB_AVAILABLE = True
 
 # Ścieżka do plików statycznych frontendu
 STATIC_PATH = os.path.join(os.path.dirname(os.path.dirname(__file__)), 'dist')
 
-print("📊 IKIGAI Analytics Server v4.0 with SQLite - Ready!")
+print("📊 IKIGAI Analytics Server v4.0 with Database - Ready!")
 print("🌐 Endpoints dostępne na http://localhost:5001")
 print("📈 Analytics Dashboard: /api/analytics/*")
 print("🍜 Meal Recipes: /api/meal-recipes* (z bazy danych)")
 print("🏆 Loyalty Program: /api/loyalty/* (z bazy danych)")
 print("🧪 Ingredients: /api/ingredients/* (z bazy danych)")
-print(f"🗄️ Database: {DB_PATH}")
+print(f"🗄️ Database: {DB_TYPE} - {'✅' if DB_AVAILABLE else '❌'}")
 
 @contextmanager
 def get_db_connection():
