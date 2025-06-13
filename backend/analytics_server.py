@@ -149,20 +149,20 @@ def setup_auth_tables():
                 return
                 
             # SQLite table modifications only
-            cursor = conn.execute("PRAGMA table_info(users)")
+            cursor = execute_query(conn, "PRAGMA table_info(users)")
             existing_columns = [column[1] for column in cursor.fetchall()]
             
             # Dodaj brakujące kolumny
             if 'password_hash' not in existing_columns:
-                conn.execute("ALTER TABLE users ADD COLUMN password_hash TEXT")
+                execute_query(conn, "ALTER TABLE users ADD COLUMN password_hash TEXT")
                 print("✅ Dodano kolumnę password_hash")
             
             if 'role' not in existing_columns:
-                conn.execute("ALTER TABLE users ADD COLUMN role TEXT DEFAULT 'user'")
+                execute_query(conn, "ALTER TABLE users ADD COLUMN role TEXT DEFAULT 'user'")
                 print("✅ Dodano kolumnę role")
             
             if 'is_active' not in existing_columns:
-                conn.execute("ALTER TABLE users ADD COLUMN is_active INTEGER DEFAULT 1")
+                execute_query(conn, "ALTER TABLE users ADD COLUMN is_active INTEGER DEFAULT 1")
                 print("✅ Dodano kolumnę is_active")
             
             conn.commit()
@@ -188,7 +188,7 @@ def require_admin(f):
         
         try:
             with get_db_connection() as conn:
-                user = conn.execute(
+                user = execute_query(conn, 
                     "SELECT role FROM users WHERE id = ? AND is_active = 1",
                     (session['user_id'],)
                 ).fetchone()
@@ -663,7 +663,7 @@ def get_meal_categories():
     """Kategorie przepisów z bazy danych"""
     try:
         with get_db_connection() as conn:
-            categories = conn.execute("""
+            categories = execute_query(conn, """
                 SELECT c.*, COUNT(r.id) as recipe_count
                 FROM categories c
                 LEFT JOIN recipes r ON c.id = r.category_id AND r.is_available = 1
@@ -855,7 +855,7 @@ def get_recommendations():
                 return result
             
             # Pobierz popularne przepisy
-            featured_recipes = conn.execute("""
+            featured_recipes = execute_query(conn, """
                 SELECT r.id, r.name, r.category_id, r.health_score, r.price, r.popularity_score
                 FROM recipes r
                 WHERE r.is_featured = 1 AND r.is_available = 1
@@ -864,7 +864,7 @@ def get_recommendations():
             """).fetchall()
             
             # Pobierz popularne składniki
-            trending_ingredients = conn.execute("""
+            trending_ingredients = execute_query(conn, """
                 SELECT i.id, i.name, i.price, c.name as category_name
                 FROM ingredients i
                 LEFT JOIN categories c ON i.category_id = c.id
@@ -1011,7 +1011,7 @@ def get_ingredients_categories():
     """Kategorie składników z bazy danych"""
     try:
         with get_db_connection() as conn:
-            categories = conn.execute("""
+            categories = execute_query(conn, """
                 SELECT c.*, COUNT(i.id) as ingredient_count
                 FROM categories c
                 LEFT JOIN ingredients i ON c.id = i.category_id AND i.is_available = 1
@@ -1050,7 +1050,7 @@ def get_ingredients_bases():
     try:
         with get_db_connection() as conn:
             # Pobierz składniki z kategorii odpowiadających bazom płynnym
-            ingredients = conn.execute("""
+            ingredients = execute_query(conn, """
                 SELECT i.*, c.name as category_name
                 FROM ingredients i
                 LEFT JOIN categories c ON i.category_id = c.id
@@ -1094,7 +1094,7 @@ def get_ingredients_toppings():
     try:
         with get_db_connection() as conn:
             # Pobierz składniki które nie są bazami płynnymi
-            ingredients = conn.execute("""
+            ingredients = execute_query(conn, """
                 SELECT i.*, c.name as category_name
                 FROM ingredients i
                 LEFT JOIN categories c ON i.category_id = c.id
@@ -1169,7 +1169,7 @@ def get_loyalty_challenges(user_id):
     try:
         with get_db_connection() as conn:
             # Sprawdź czy użytkownik istnieje
-            user_exists = conn.execute("""
+            user_exists = execute_query(conn, """
                 SELECT 1 FROM users WHERE id = ?
             """, (user_id,)).fetchone()
             
@@ -1180,7 +1180,7 @@ def get_loyalty_challenges(user_id):
                 }), 404
             
             # Pobierz wyzwania z postępem użytkownika
-            challenges = conn.execute("""
+            challenges = execute_query(conn, """
                 SELECT 
                     lc.*,
                     COALESCE(ucp.progress, 0) as progress,
@@ -1227,7 +1227,7 @@ def get_loyalty_rewards():
     """Dostępne nagrody w sklepie punktów z bazy danych"""
     try:
         with get_db_connection() as conn:
-            rewards = conn.execute("""
+            rewards = execute_query(conn, """
                 SELECT * FROM loyalty_rewards
                 WHERE is_available = 1
                 ORDER BY cost ASC, name
@@ -1280,7 +1280,7 @@ def login():
         
         with get_db_connection() as conn:
             # Znajdź użytkownika po ID lub emailu
-            user = conn.execute("""
+            user = execute_query(conn, """
                 SELECT id, name, email, password_hash, role, is_active, login_attempts
                 FROM users 
                 WHERE (id = ? OR email = ?) AND is_active = 1
@@ -1302,7 +1302,7 @@ def login():
             # Weryfikuj hasło
             if not verify_password(password, user['password_hash']):
                 # Zwiększ licznik nieudanych prób
-                conn.execute("""
+                execute_query(conn, """
                     UPDATE users 
                     SET login_attempts = login_attempts + 1 
                     WHERE id = ?
@@ -1315,7 +1315,7 @@ def login():
                 }), 401
             
             # Resetuj licznik prób i ustaw ostatnie logowanie
-            conn.execute("""
+            execute_query(conn, """
                 UPDATE users 
                 SET login_attempts = 0, last_login = datetime('now'), last_activity = datetime('now')
                 WHERE id = ?
@@ -1376,7 +1376,7 @@ def register():
         
         with get_db_connection() as conn:
             # Sprawdź czy użytkownik już istnieje
-            existing = conn.execute("""
+            existing = execute_query(conn, """
                 SELECT id FROM users WHERE id = ? OR email = ?
             """, (username, email)).fetchone()
             
@@ -1387,7 +1387,7 @@ def register():
                 }), 409
             
             # Utwórz nowego użytkownika
-            conn.execute("""
+            execute_query(conn, """
                 INSERT INTO users (
                     id, name, email, password_hash, role, is_active,
                     loyalty_level, loyalty_points, total_orders, total_spent,
@@ -1430,7 +1430,7 @@ def get_profile():
     """Pobierz profil zalogowanego użytkownika"""
     try:
         with get_db_connection() as conn:
-            user = conn.execute("""
+            user = execute_query(conn, """
                 SELECT id, name, email, phone, role, loyalty_level, loyalty_points,
                        total_orders, total_spent, member_since, last_login
                 FROM users WHERE id = ?
@@ -1472,7 +1472,7 @@ def get_all_users():
     """Lista wszystkich użytkowników (tylko dla adminów)"""
     try:
         with get_db_connection() as conn:
-            users = conn.execute("""
+            users = execute_query(conn, """
                 SELECT id, name, email, role, is_active, loyalty_points,
                        total_orders, member_since, last_login
                 FROM users
@@ -1514,9 +1514,15 @@ def get_all_users():
 def health_check():
     try:
         with get_db_connection() as conn:
-            # Test połączenia z bazą
-            conn.execute("SELECT 1").fetchone()
-            db_status = "connected"
+            if conn:
+                # Test połączenia z bazą using execute_query helper
+                result = execute_query(conn, "SELECT 1")
+                if result:
+                    db_status = "connected"
+                else:
+                    db_status = "empty result"
+            else:
+                db_status = "no connection"
     except Exception as e:
         db_status = f"error: {str(e)}"
     
