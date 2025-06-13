@@ -4,7 +4,7 @@
 Serwer API z pełną integracją bazy danych SQLite
 """
 
-from flask import Flask, jsonify, request, session
+from flask import Flask, jsonify, request, session, send_from_directory
 from flask_cors import CORS
 import sqlite3
 import json
@@ -19,6 +19,9 @@ print("🎯 IKIGAI Analytics Server with Database - Uruchamianie...")
 
 # Ścieżka do bazy danych
 DB_PATH = os.path.join(os.path.dirname(__file__), 'ikigai.db')
+
+# Ścieżka do plików statycznych frontendu
+STATIC_PATH = os.path.join(os.path.dirname(os.path.dirname(__file__)), 'dist')
 
 # Sprawdź czy baza istnieje
 if not os.path.exists(DB_PATH):
@@ -1397,6 +1400,31 @@ def health_check():
         }
     })
 
+# =========================
+# FRONTEND STATIC FILES (dla Heroku)
+# =========================
+
+@app.route('/')
+def serve_frontend():
+    """Serwuje główną stronę frontendu"""
+    try:
+        return send_from_directory(STATIC_PATH, 'index.html')
+    except Exception as e:
+        return jsonify({"error": "Frontend not found", "message": str(e)}), 404
+
+@app.route('/<path:filename>')
+def serve_static(filename):
+    """Serwuje pliki statyczne frontendu"""
+    try:
+        return send_from_directory(STATIC_PATH, filename)
+    except Exception as e:
+        # Jeśli plik nie istnieje, zwróć index.html (dla Vue Router)
+        try:
+            return send_from_directory(STATIC_PATH, 'index.html')
+        except Exception:
+            return jsonify({"error": "File not found", "message": str(e)}), 404
+
 if __name__ == '__main__':
     print("🚀 Uruchamiam IKIGAI Analytics Server...")
-    app.run(host='0.0.0.0', port=5001, debug=True) 
+    port = int(os.environ.get('PORT', 5001))
+    app.run(host='0.0.0.0', port=port, debug=False) 

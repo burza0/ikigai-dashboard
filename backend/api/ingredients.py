@@ -639,7 +639,7 @@ def create_custom_mix():
                 'success': False,
                 'error': 'Musisz wybrać bazę dla swojego bowl'
             }), 400
-            
+        
         # Znajdź bazę
         base = None
         for base_item in BASES:
