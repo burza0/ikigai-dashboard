@@ -66,6 +66,17 @@
               >
                 🗺️ Mapa
               </button>
+              <button 
+                @click="navigateTo('orders')"
+                :class="[
+                  'px-4 py-2 text-base font-medium rounded-lg transition-colors duration-200',
+                  currentView === 'orders' 
+                    ? 'bg-purple-100 text-purple-700 dark:bg-purple-900 dark:text-purple-300' 
+                    : 'text-gray-600 dark:text-gray-300 hover:text-purple-600 dark:hover:text-purple-400'
+                ]"
+              >
+                🛒 Zamówienia
+              </button>
               <button
                 @click="navigateTo('mobile')"
                 :class="[
@@ -108,7 +119,7 @@
               <button 
                 v-if="isAdmin"
                 @click="navigateTo('analytics')"
-                :class="[
+                  :class="[
                   'px-4 py-2 text-base font-medium rounded-lg transition-colors duration-200',
                   currentView === 'analytics' 
                     ? 'bg-purple-100 text-purple-700 dark:bg-purple-900 dark:text-purple-300' 
@@ -222,6 +233,7 @@
       <IkigaiDashboard v-if="currentView === 'dashboard'" :isAdmin="isAdmin" :currentUser="currentUser" @navigate="navigateTo" />
       <RecipeCreator v-else-if="currentView === 'mixer'" @navigate="navigateTo" />
       <VendingMap v-else-if="currentView === 'map'" @navigate="navigateTo" />
+      <OrderBasket v-else-if="currentView === 'orders'" @navigate="navigateTo" />
       <SocialChallenges v-else-if="currentView === 'social' && currentUser" @navigate="navigateTo" />
       <LoyaltyProgram v-else-if="currentView === 'loyalty' && currentUser" @navigate="navigateTo" />
       <MobileQrApp v-else-if="currentView === 'mobile'" @back="navigateTo('dashboard')" />
@@ -231,12 +243,12 @@
         <div class="text-6xl mb-4">🔒</div>
         <h3 class="text-xl font-semibold text-gray-900 dark:text-white mb-2">Zaloguj się aby kontynuować</h3>
         <p class="text-gray-600 dark:text-gray-400 mb-6">Ta sekcja wymaga zalogowania</p>
-        <button 
+          <button
           @click="showLoginForm = true" 
           class="px-6 py-3 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors"
         >
           🔐 Zaloguj się
-        </button>
+          </button>
       </div>
       <div v-else-if="!isAdmin && currentView === 'analytics'" class="text-center py-12">
         <div class="text-6xl mb-4">⚠️</div>
@@ -362,6 +374,22 @@ const Analytics = defineAsyncComponent({
   timeout: 10000
 })
 
+const OrderBasket = defineAsyncComponent({
+  loader: () => import("./components/OrderBasket.vue"),
+  loadingComponent: {
+    template: `
+      <div class="min-h-screen bg-gray-50 dark:bg-gray-900 flex items-center justify-center">
+        <div class="text-center">
+          <div class="animate-spin rounded-full h-12 w-12 border-b-2 border-yellow-600 mx-auto mb-4"></div>
+          <p class="text-gray-600 dark:text-gray-400">Ładowanie koszyka zamówień...</p>
+        </div>
+      </div>
+    `
+  },
+  delay: 200,
+  timeout: 10000
+})
+
 const SocialChallenges = defineAsyncComponent({
   loader: () => import('./components/SocialChallenges.vue'),
   loadingComponent: {
@@ -458,6 +486,7 @@ const preloadComponent = (componentName) => {
   else if (componentName === 'loyalty') LoyaltyProgram
   else if (componentName === 'mobile') MobileQrApp
   else if (componentName === 'analytics') Analytics
+  else if (componentName === 'orders') OrderBasket
 }
 
 // Navigation with preloading

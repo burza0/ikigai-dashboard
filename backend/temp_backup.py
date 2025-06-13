@@ -1,49 +1,12 @@
 #!/usr/bin/env python3
-from flask import Flask, jsonify, request, session
+from flask import Flask, jsonify, request
 from flask_cors import CORS
-import sqlite3
-import hashlib
-import os
-import json
-import psycopg2
-import psycopg2.extras
-from contextlib import contextmanager
-import uuid
-import qrcode
-import io
-import base64
-from datetime import datetime
 
 print("🎯 IKIGAI Analytics Server - Uruchamianie...")
 
 # Tworzymy aplikację Flask
 app = Flask(__name__)
-app.secret_key = 'ikigai-dev-secret-key-2024'
-
-# Konfiguracja CORS z credentials support
-CORS(app, resources={
-    r"/api/*": {
-        "origins": ["http://localhost:5173", "http://localhost:5174", "http://127.0.0.1:5173"],
-        "methods": ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
-        "allow_headers": ["Content-Type", "Authorization"],
-        "supports_credentials": True
-    }
-})
-
-# Database setup - try PostgreSQL first, fallback to SQLite
-DATABASE_URL = os.environ.get('DATABASE_URL')
-if DATABASE_URL:
-    print("🐘 Wykryto PostgreSQL - używam bazy danych")
-    DB_TYPE = 'postgresql'
-    if DATABASE_URL.startswith('postgres://'):
-        DATABASE_URL = DATABASE_URL.replace('postgres://', 'postgresql://', 1)
-    DB_PATH = DATABASE_URL
-    DB_AVAILABLE = True
-else:
-    print("🗃️ Używam lokalnej bazy SQLite")
-    DB_TYPE = 'sqlite'
-    DB_PATH = os.path.join(os.path.dirname(__file__), 'ikigai.db')
-    DB_AVAILABLE = os.path.exists(DB_PATH)
+CORS(app)
 
 print("📊 IKIGAI Analytics Server v3.0 - Ready!")
 print("🌐 Endpoints dostępne na http://localhost:5001")
@@ -53,117 +16,6 @@ print("🍜 Meal Recipes: /api/meal-recipes*, /api/recommendations")
 print("🗺️ Vending Machines: /api/vending-machines")
 print("🧪 Ingredients: /api/ingredients/*") 
 print("🏆 Loyalty Program: /api/loyalty/*")
-print(f"🗄️ Database: {DB_TYPE} - {'✅' if DB_AVAILABLE else '❌'}")
-
-@contextmanager
-def get_db_connection():
-    """Database connection context manager for both PostgreSQL and SQLite"""
-    if not DB_AVAILABLE:
-        yield None
-        return
-    
-    conn = None
-    try:
-        if DB_TYPE == 'postgresql':
-            conn = psycopg2.connect(DB_PATH)
-            conn.cursor_factory = psycopg2.extras.RealDictCursor
-            yield conn
-        else:
-            conn = sqlite3.connect(DB_PATH)
-            conn.row_factory = sqlite3.Row
-            yield conn
-    finally:
-        if conn:
-            conn.close()
-
-def hash_password(password):
-    """Hash password using SHA-256"""
-    return hashlib.sha256(password.encode()).hexdigest()
-
-# Authentication endpoints
-@app.route('/api/auth/login', methods=['POST'])
-def login():
-    """User login endpoint"""
-    data = request.get_json()
-    username = data.get('username')
-    password = data.get('password')
-    
-    if not username or not password:
-        return jsonify({'status': 'error', 'message': 'Username and password required'}), 400
-    
-    try:
-        with get_db_connection() as conn:
-            if not conn:
-                return jsonify({'status': 'error', 'message': 'Database not available'}), 500
-            
-            user = conn.execute(
-                'SELECT * FROM users WHERE (username = ? OR email = ?) AND is_active = 1',
-                (username, username)
-            ).fetchone()
-            
-            if user and user['password_hash'] == hash_password(password):
-                session['user_id'] = user['id']
-                session['username'] = user['username']
-                session['role'] = user['role']
-                
-                return jsonify({
-                    'status': 'success',
-                    'message': 'Logged in successfully',
-                    'user': {
-                        'id': user['id'],
-                        'username': user['username'],
-                        'name': user['name'],
-                        'role': user['role'],
-                        'loyalty_points': user['loyalty_points']
-                    }
-                })
-            else:
-                return jsonify({'status': 'error', 'message': 'Invalid credentials'}), 401
-                
-    except Exception as e:
-        return jsonify({'status': 'error', 'message': 'Login failed'}), 500
-
-@app.route('/api/auth/logout', methods=['POST'])
-def logout():
-    """User logout endpoint"""
-    session.clear()
-    return jsonify({'status': 'success', 'message': 'Logged out successfully'})
-
-@app.route('/api/auth/profile', methods=['GET'])
-def get_profile():
-    """Get current user profile"""
-    if 'user_id' not in session:
-        return jsonify({'status': 'error', 'message': 'Not authenticated'}), 401
-    
-    try:
-        with get_db_connection() as conn:
-            if not conn:
-                return jsonify({'status': 'error', 'message': 'Database not available'}), 500
-            
-            user = conn.execute(
-                'SELECT * FROM users WHERE id = ? AND is_active = 1',
-                (session['user_id'],)
-            ).fetchone()
-            
-            if user:
-                return jsonify({
-                    'status': 'success',
-                    'user': {
-                        'id': user['id'],
-                        'username': user['username'],
-                        'name': user['name'],
-                        'role': user['role'],
-                        'loyalty_points': user['loyalty_points'],
-                        'total_orders': user['total_orders'],
-                        'total_spent': user['total_spent']
-                    }
-                })
-            else:
-                session.clear()
-                return jsonify({'status': 'error', 'message': 'User not found'}), 404
-                
-    except Exception as e:
-        return jsonify({'status': 'error', 'message': 'Failed to get profile'}), 500
 
 # Analytics API endpoints
 @app.route('/api/analytics/dashboard', methods=['GET'])
@@ -391,133 +243,95 @@ def get_user_favorites():
         "data": favorites
     })
 
-# MEAL RECIPES API endpoints - POBIERA Z BAZY DANYCH!
+# MEAL RECIPES API endpoints - NOWE!
 @app.route('/api/meal-recipes', methods=['GET'])
 def get_meal_recipes():
-    """Lista wszystkich przepisów na mieszanki z bazy danych"""
-    try:
-        # Try PostgreSQL first
-        DATABASE_URL = os.environ.get('DATABASE_URL')
-        if DATABASE_URL:
-            if DATABASE_URL.startswith('postgres://'):
-                DATABASE_URL = DATABASE_URL.replace('postgres://', 'postgresql://', 1)
-            
-            import psycopg2
-            import psycopg2.extras
-            
-            conn = psycopg2.connect(DATABASE_URL)
-            cursor = conn.cursor(cursor_factory=psycopg2.extras.RealDictCursor)
-            
-            cursor.execute("""
-                SELECT id, name, category_id as category, description, 
-                       calories, protein, carbs, price, health_score, prep_time
-                FROM recipes 
-                WHERE is_available = true
-                ORDER BY id
-            """)
-            
-            recipes_data = cursor.fetchall()
-            conn.close()
-            
-            # Convert to frontend format
-            recipes = []
-            for recipe in recipes_data:
-                # Parse JSON ingredients if it's a string
-                ingredients = []  # PostgreSQL nie ma tej kolumny
-                if isinstance(ingredients, str):
-                    try:
-                        ingredients = json.loads(ingredients)
-                    except:
-                        ingredients = []
-                
-                recipes.append({
-                    "id": recipe['id'],
-                    "name": recipe['name'],
-                    "category": recipe['category'],
-                    "description": recipe['description'],
-                    "ingredients": ingredients,
-                    "calories": recipe['calories'],
-                    "protein": recipe['protein'],
-                    "carbs": recipe['carbs'],
-                    "price": float(recipe['price']) if recipe['price'] else 0,
-                    "health_score": recipe['health_score'],
-                    "prep_time": recipe['prep_time'],
-                    "difficulty": "easy",
-                    "tags": ["healthy", "fresh"]
-                })
-            
-            print(f"✅ Pobrano {len(recipes)} przepisów z PostgreSQL"); print("Przepisy:", [r["name"] for r in recipes])
-            return jsonify({
-                "status": "success",
-                "data": recipes
-            })
-        
-        # Fallback to SQLite if no PostgreSQL
-        else:
-            with get_db_connection() as conn:
-                if not conn:
-                    return jsonify({"status": "error", "message": "Database not available"}), 500
-                
-                cursor = conn.execute("""
-                    SELECT * FROM recipes WHERE is_available = 1 ORDER BY id
-                """)
-                recipes_data = cursor.fetchall()
-                
-                recipes = []
-                for recipe in recipes_data:
-                    # Parse JSON ingredients
-                    ingredients = []  # PostgreSQL nie ma tej kolumny 
-                    if isinstance(ingredients, str):
-                        try:
-                            ingredients = json.loads(ingredients)
-                        except:
-                            ingredients = []
-                    
-                    recipes.append({
-                        "id": recipe['name'].lower().replace(' ', '_'),
-                        "name": recipe['name'],
-                        "category": recipe['category'],
-                        "description": recipe['description'],
-                        "ingredients": ingredients,
-                        "calories": recipe['calories'],
-                        "protein": recipe['protein'],
-                        "carbs": 0,
-                        "price": float(recipe['price']) if recipe['price'] else 0,
-                        "health_score": recipe['health_score'],
-                        "prep_time": recipe['prep_time'],
-                        "difficulty": "easy",
-                        "tags": ["healthy", "fresh"]
-                    })
-                
-                print(f"✅ Pobrano {len(recipes)} przepisów z SQLite")
-                return jsonify({
-                    "status": "success",
-                    "data": recipes
-                })
-                
-    except Exception as e:
-        print(f"❌ Błąd pobierania przepisów: {e}")
-        # Fallback to static data if database fails
-        return jsonify({
-            "status": "success",
-            "data": [
-                {
-                    "id": "energetic_morning",
-                    "name": "Energetyczny Start Dnia",
-                    "category": "breakfast",
-                    "description": "Idealna mieszanka na poranną energię",
-                    "ingredients": ["spirulina_powder", "protein_vanilla", "coconut_water", "chia_seeds"],
-                    "calories": 320,
-                    "protein": 25,
-                    "carbs": 18,
-                    "price": 16.60,
-                    "health_score": 94,
-                    "prep_time": 3,
-                    "difficulty": "easy",
-                    "tags": ["high-protein", "energizing", "superfood"]
-                }
-            ]
-        })
+    """Lista wszystkich przepisów na mieszanki"""
+    return jsonify({
+        "status": "success",
+        "data": [
+            {
+                "id": "energetic_morning",
+                "name": "Energetyczny Start Dnia",
+                "category": "breakfast",
+                "description": "Idealna mieszanka na poranną energię",
+                "ingredients": ["spirulina_powder", "protein_vanilla", "coconut_water", "chia_seeds"],
+                "calories": 320,
+                "protein": 25,
+                "carbs": 18,
+                "fat": 12,
+                "health_score": 94,
+                "prep_time": 3,
+                "price": 16.60,
+                "difficulty": "easy",
+                "tags": ["high-protein", "energizing", "superfood"]
+            },
+            {
+                "id": "detox_green",
+                "name": "Detox Green Morning",
+                "category": "detox",
+                "description": "Oczyszczająca zielona mieszanka",
+                "ingredients": ["spirulina_powder", "matcha_premium", "coconut_water", "goji_berries"],
+                "calories": 180,
+                "protein": 12,
+                "carbs": 24,
+                "fat": 6,
+                "health_score": 98,
+                "prep_time": 3,
+                "price": 21.00,
+                "difficulty": "easy", 
+                "tags": ["detox", "antioxidants", "green"]
+            },
+            {
+                "id": "protein_power",
+                "name": "Power Protein Bowl",
+                "category": "fitness",
+                "description": "Maksymalna dawka białka",
+                "ingredients": ["protein_vanilla", "protein_chocolate", "chia_seeds", "coconut_water"],
+                "calories": 410,
+                "protein": 35,
+                "carbs": 12,
+                "fat": 18,
+                "health_score": 91,
+                "prep_time": 3,
+                "price": 18.30,
+                "difficulty": "medium",
+                "tags": ["high-protein", "muscle-building", "post-workout"]
+            },
+            {
+                "id": "brain_boost",
+                "name": "Brain Boost Focus",
+                "category": "cognitive",
+                "description": "Mieszanka na koncentrację",
+                "ingredients": ["matcha_premium", "goji_berries", "chia_seeds", "coconut_water"],
+                "calories": 250,
+                "protein": 8,
+                "carbs": 32,
+                "fat": 9,
+                "health_score": 89,
+                "prep_time": 3,
+                "price": 19.40,
+                "difficulty": "easy",
+                "tags": ["focus", "brain-health", "antioxidants"]
+            },
+            {
+                "id": "recovery_zen",
+                "name": "Recovery & Zen",
+                "category": "recovery",
+                "description": "Regeneracja po treningu",
+                "ingredients": ["protein_vanilla", "spirulina_powder", "goji_berries", "coconut_water"],
+                "calories": 290,
+                "protein": 22,
+                "carbs": 20,
+                "fat": 10,
+                "health_score": 92,
+                "prep_time": 3,
+                "price": 17.80,
+                "difficulty": "easy",
+                "tags": ["recovery", "anti-inflammatory", "calming"]
+            }
+        ]
+    })
 
 @app.route('/api/meal-recipes/categories', methods=['GET'])
 def get_meal_categories():
@@ -809,85 +623,53 @@ def get_vending_machines():
 # INGREDIENTS API endpoints - NOWE!
 @app.route('/api/ingredients/categories', methods=['GET'])
 def get_ingredients_categories():
-    """Kategorie składników z PostgreSQL"""
-    try:
-        with get_db_connection() as conn:
-            if conn:
-                cursor = conn.cursor(cursor_factory=psycopg2.extras.RealDictCursor)
-                
-                # Pobierz kategorie z liczbą składników
-                cursor.execute("""
-                    SELECT ic.*, COUNT(i.id) as count
-                    FROM ingredient_categories ic
-                    LEFT JOIN ingredients i ON ic.id = i.category_id AND i.is_available = true
-                    GROUP BY ic.id, ic.name, ic.description, ic.icon, ic.color, ic.slug
-                    ORDER BY ic.id
-                """)
-                categories = cursor.fetchall()
-                
-                # Mapowanie kategorii na frontend
-                category_mapping = {
-                    'liquids': {'step': 1, 'frontend_name': 'Bazy', 'frontend_id': 'bases'},
-                    'superfoods': {'step': 2, 'frontend_name': 'Superfoods', 'frontend_id': 'superfoods'},
-                    'fruits': {'step': 2, 'frontend_name': 'Owoce', 'frontend_id': 'fruits'},
-                    'nuts_seeds': {'step': 2, 'frontend_name': 'Nasiona', 'frontend_id': 'seeds'},
-                    'sweeteners': {'step': 2, 'frontend_name': 'Produkty pszczele', 'frontend_id': 'honey'},
-                    'adaptogens': {'step': 2, 'frontend_name': 'Detoks', 'frontend_id': 'detox'},
-                    'vitamins': {'step': 2, 'frontend_name': 'Witaminy', 'frontend_id': 'vitamins'},
-                    'proteins': {'step': 2, 'frontend_name': 'Białka', 'frontend_id': 'proteins'}
-                }
-                
-                # Tworzenie odpowiedzi dla frontendu
-                frontend_categories = []
-                for cat in categories:
-                    if cat['slug'] in category_mapping:
-                        mapping = category_mapping[cat['slug']]
-                        frontend_categories.append({
-                            "id": mapping['frontend_id'],
-                            "db_slug": cat['slug'],
-                            "name": mapping['frontend_name'],
-                            "description": cat['description'] or f"Składniki kategorii {mapping['frontend_name']}",
-                            "icon": cat['icon'] or "🔸",
-                            "color": cat['color'] or "#666666",
-                            "count": int(cat['count']),
-                            "step": mapping['step']
-                        })
-                
-                print(f"✅ Pobrano {len(frontend_categories)} kategorii składników z PostgreSQL")
-                return jsonify({
-                    "status": "success",
-                    "data": frontend_categories
-                })
-            else:
-                print("❌ Brak połączenia z bazą danych - używam statycznych kategorii")
-                
-    except Exception as e:
-        print(f"❌ Błąd pobierania kategorii składników: {e}")
-    
-    # Fallback - statyczne kategorie
+    """Kategorie składników"""
     return jsonify({
         "status": "success",
         "data": [
+            {
+                "id": "proteins",
+                "name": "Białka",
+                "description": "Wysokiej jakości białka roślinne i zwierzęce",
+                "icon": "💪",
+                "color": "#ff6b6b",
+                "count": 8
+            },
+            {
+                "id": "superfoods",
+                "name": "Superfoods",
+                "description": "Suplementy diety bogate w składniki odżywcze",
+                "icon": "⚡",
+                "color": "#4ecdc4",
+                "count": 12
+            },
             {
                 "id": "bases",
                 "name": "Bazy",
                 "description": "Płyny i bazy do mieszanek",
                 "icon": "💧",
                 "color": "#45b7d1",
-                "count": 0,
-                "step": 1
+                "count": 6
             },
             {
-                "id": "superfoods",
-                "name": "Superfoods",
-                "description": "Składniki o wysokiej wartości odżywczej",
-                "icon": "⚡",
-                "color": "#4ecdc4",
-                "count": 0,
-                "step": 2
+                "id": "seeds",
+                "name": "Nasiona i orzechy",
+                "description": "Naturalne źródła tłuszczów i błonnika",
+                "icon": "🌰",
+                "color": "#96ceb4",
+                "count": 8
+            },
+            {
+                "id": "traditional",
+                "name": "Tradycyjne",
+                "description": "Klasyczne składniki z różnych kultur",
+                "icon": "🍃",
+                "color": "#feca57",
+                "count": 7
             }
         ]
     })
+
 @app.route('/api/ingredients/bases', methods=['GET'])
 def get_ingredients_bases():
     """Składniki - bazy płynne"""
@@ -1152,317 +934,6 @@ def health_check():
         }
     })
 
-
-@app.route("/api/ingredients/category/<category_slug>", methods=["GET"])
-def get_ingredients_by_category(category_slug):
-    """Składniki dla konkretnej kategorii z PostgreSQL"""
-    try:
-        with get_db_connection() as conn:
-            if conn:
-                cursor = conn.cursor(cursor_factory=psycopg2.extras.RealDictCursor)
-                cursor.execute("SELECT i.id, i.name, i.description, i.price FROM ingredients i JOIN ingredient_categories ic ON i.category_id = ic.id WHERE ic.slug = %s AND i.is_available = true ORDER BY i.name", (category_slug,))
-                ingredients = cursor.fetchall()
-                data = [{"id": ing["id"], "name": ing["name"], "description": ing["description"] or "Składnik", "price": float(ing["price"] or 0)} for ing in ingredients]
-                print(f"✅ {len(data)} składników dla {category_slug}")
-                return jsonify({"status": "success", "data": data, "count": len(data)})
-    except Exception as e:
-        print(f"ERROR: {e}")
-    return jsonify({"status": "error", "data": [], "count": 0})
-
-
-# ===== SYSTEM ZAMÓWIEŃ I QR KODÓW =====
-
-def generate_qr_code(order_id, order_data):
-    """Generuje kod QR dla zamówienia"""
-    try:
-        # Dane do QR kodu
-        qr_data = {
-            "order_id": order_id, "order": {"id": order_id}, "success": True,
-            "user_id": order_data.get("user_id"),
-            "recipe_id": order_data.get("recipe_id"),
-            "machine_id": order_data.get("machine_id"),
-            "total_price": order_data.get("total_price"),
-            "timestamp": datetime.now().isoformat()
-        }
-        
-        qr_content = json.dumps(qr_data)
-        qr = qrcode.QRCode(version=1, error_correction=qrcode.constants.ERROR_CORRECT_M, box_size=10, border=4)
-        qr.add_data(qr_content)
-        qr.make(fit=True)
-        
-        img = qr.make_image(fill_color="black", back_color="white")
-        buffer = io.BytesIO()
-        img.save(buffer, format="PNG")
-        img_base64 = base64.b64encode(buffer.getvalue()).decode()
-        
-        return f"data:image/png;base64,{img_base64}"
-        
-    except Exception as e:
-        print(f"❌ Błąd generowania QR kodu: {e}")
-        return None
-
-
-@app.route("/api/orders/test", methods=["POST"])
-def test_order():
-    try:
-        data = request.get_json()
-        return jsonify({"status": "success", "received": data})
-    except Exception as e:
-        return jsonify({"status": "error", "message": str(e)})
-
-@app.route('/api/orders', methods=['POST'])
-def create_order():
-    """Składanie nowego zamówienia"""
-    try:
-        raw_data = request.get_json(); print(f"📥 Raw data: {raw_data}"); data = {"user_id": raw_data.get("user_id", "web_user"), "machine_id": raw_data.get("machine_id") or raw_data.get("vending_machine_id", "VM001"), "payment_method": raw_data.get("payment_method", "card"), "recipe_id": raw_data.get("recipe_id", "detox_green"), "notes": raw_data.get("notes", "")}; print(f"📝 Normalized: {data}")
-        required_fields = ["user_id", "recipe_id", "machine_id", "payment_method"]
-        for field in required_fields:
-            if not data.get(field):
-                return jsonify({"status": "error", "message": f"Brak pola: {field}"}), 400
-        
-        order_id = str(uuid.uuid4())
-        
-        with get_db_connection() as conn:
-            if conn:
-                cursor = conn.cursor(cursor_factory=psycopg2.extras.RealDictCursor)
-                cursor.execute("SELECT price FROM recipes WHERE id = %s", (data["recipe_id"],))
-                recipe = cursor.fetchone()
-                
-                if not recipe:
-                    return jsonify({"status": "error", "message": "Przepis nie znaleziony"}), 404
-                
-                total_price = float(recipe["price"])
-                
-                order_data = {
-                    "user_id": data["user_id"],
-                    "recipe_id": data["recipe_id"],
-                    "machine_id": data["machine_id"],
-                    "total_price": total_price,
-                    "payment_method": data["payment_method"],
-                    "notes": data.get("notes", "")
-                }
-                # qr_code = generate_qr_code(order_id, order_data)
-                # qr_code = None  # Tymczasowo wyłączone
-                qr_code = generate_qr_code(order_id, order_data)
-                
-                cursor.execute("""
-                    INSERT INTO orders (id, user_id, recipe_id, status, total_price, 
-                                      payment_method, machine_id, qr_code, created_at, notes)
-                    VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
-                """, (
-                    order_id, data["user_id"], data["recipe_id"], "pending", 
-                    total_price, data["payment_method"], data["machine_id"], 
-                    qr_code, datetime.now(), data.get("notes", "")
-                ))
-                conn.commit()
-                
-                print(f"✅ Zamówienie {order_id} utworzone")
-                
-                return jsonify({
-                    "status": "success",
-                    "order_id": order_id, "order": {"id": order_id}, "success": True,
-                    "qr_code": qr_code,
-                    "total_price": total_price,
-                    "estimated_time": 5,
-                    "message": "Zamówienie zostało złożone. Pokaż kod QR przy automacie."
-                })
-                
-    except Exception as e:
-        print(f"❌ Błąd tworzenia zamówienia: {e}")
-        return jsonify({"status": "error", "message": "Błąd serwera"}), 500
-    
-    return jsonify({"status": "error", "message": "Brak połączenia z bazą"}), 500
-
-@app.route('/api/orders', methods=['GET'])
-def get_orders():
-    """Pobieranie listy zamówień"""
-    try:
-        user_id = request.args.get("user_id")
-        status = request.args.get("status")
-        limit = int(request.args.get("limit", 20))
-        
-        with get_db_connection() as conn:
-            if conn:
-                cursor = conn.cursor(cursor_factory=psycopg2.extras.RealDictCursor)
-                
-                query = """
-                    SELECT o.*, r.name as recipe_name, r.description as recipe_description
-                    FROM orders o
-                    LEFT JOIN recipes r ON o.recipe_id = r.id
-                    WHERE 1=1
-                """
-                params = []
-                
-                if user_id:
-                    query += " AND o.user_id = %s"
-                    params.append(user_id)
-                    
-                if status:
-                    query += " AND o.status = %s"
-                    params.append(status)
-                    
-                query += " ORDER BY o.created_at DESC LIMIT %s"
-                params.append(limit)
-                
-                cursor.execute(query, params)
-                orders = cursor.fetchall()
-                
-                orders_data = []
-                for order in orders:
-                    orders_data.append({
-                        "id": order["id"],
-                        "user_id": order["user_id"],
-                        "recipe": {
-                            "id": order["recipe_id"],
-                            "name": order["recipe_name"],
-                            "description": order["recipe_description"]
-                        },
-                        "status": order["status"],
-                        "total_price": float(order["total_price"]),
-                        "payment_method": order["payment_method"],
-                        "machine_id": order["machine_id"],
-                        "created_at": order["created_at"].isoformat() if order["created_at"] else None,
-                        "completed_at": order["completed_at"].isoformat() if order["completed_at"] else None,
-                        "notes": order["notes"],
-                        "qr_code": order["qr_code"] if order["status"] == "pending" else None
-                    })
-                
-                print(f"✅ Pobrano {len(orders_data)} zamówień")
-                return jsonify({
-                    "status": "success",
-                    "data": orders_data,
-                    "count": len(orders_data)
-                })
-                
-    except Exception as e:
-        print(f"❌ Błąd pobierania zamówień: {e}")
-        return jsonify({"status": "error", "message": "Błąd serwera"}), 500
-    
-    return jsonify({"status": "error", "message": "Brak połączenia z bazą"}), 500
-
-@app.route('/api/orders/<order_id>', methods=['GET'])
-def get_order(order_id):
-    """Pobieranie szczegółów zamówienia"""
-    try:
-        with get_db_connection() as conn:
-            if conn:
-                cursor = conn.cursor(cursor_factory=psycopg2.extras.RealDictCursor)
-                cursor.execute("""
-                    SELECT o.*, r.name as recipe_name, r.description as recipe_description,
-                           r.ingredients, r.calories, r.protein
-                    FROM orders o
-                    LEFT JOIN recipes r ON o.recipe_id = r.id
-                    WHERE o.id = %s
-                """, (order_id,))
-                
-                order = cursor.fetchone()
-                
-                if not order:
-                    return jsonify({"status": "error", "message": "Zamówienie nie znalezione"}), 404
-                
-                order_data = {
-                    "id": order["id"],
-                    "user_id": order["user_id"],
-                    "recipe": {
-                        "id": order["recipe_id"],
-                        "name": order["recipe_name"],
-                        "description": order["recipe_description"],
-                        "ingredients": order["ingredients"],
-                        "calories": order["calories"],
-                        "protein": order["protein"]
-                    },
-                    "status": order["status"],
-                    "total_price": float(order["total_price"]),
-                    "payment_method": order["payment_method"],
-                    "machine_id": order["machine_id"],
-                    "created_at": order["created_at"].isoformat() if order["created_at"] else None,
-                    "completed_at": order["completed_at"].isoformat() if order["completed_at"] else None,
-                    "notes": order["notes"],
-                    "qr_code": order["qr_code"]
-                }
-                
-                return jsonify({
-                    "status": "success",
-                    "data": order_data
-                })
-                
-    except Exception as e:
-        print(f"❌ Błąd pobierania zamówienia {order_id}: {e}")
-        return jsonify({"status": "error", "message": "Błąd serwera"}), 500
-    
-    return jsonify({"status": "error", "message": "Brak połączenia z bazą"}), 500
-
-@app.route('/api/orders/<order_id>/status', methods=['PUT'])
-def update_order_status(order_id):
-    """Aktualizacja statusu zamówienia"""
-    try:
-        data = request.get_json()
-        new_status = data.get("status")
-        
-        if new_status not in ["pending", "preparing", "ready", "completed", "cancelled"]:
-            return jsonify({"status": "error", "message": "Nieprawidłowy status"}), 400
-        
-        with get_db_connection() as conn:
-            if conn:
-                cursor = conn.cursor()
-                
-                if new_status == "completed":
-                    cursor.execute(
-                        "UPDATE orders SET status = %s, completed_at = %s WHERE id = %s",
-                        (new_status, datetime.now(), order_id)
-                    )
-                else:
-                    cursor.execute(
-                        "UPDATE orders SET status = %s WHERE id = %s",
-                        (new_status, order_id)
-                    )
-                
-                if cursor.rowcount == 0:
-                    return jsonify({"status": "error", "message": "Zamówienie nie znalezione"}), 404
-                
-                conn.commit()
-                
-                print(f"✅ Status zamówienia {order_id} zmieniony na {new_status}")
-                return jsonify({
-                    "status": "success",
-                    "message": f"Status zamówienia zmieniony na {new_status}"
-                })
-                
-    except Exception as e:
-        print(f"❌ Błąd aktualizacji statusu {order_id}: {e}")
-        return jsonify({"status": "error", "message": "Błąd serwera"}), 500
-    
-    return jsonify({"status": "error", "message": "Brak połączenia z bazą"}), 500
-
-@app.route('/api/orders/<order_id>/qr', methods=['GET'])
-def get_order_qr(order_id):
-    """Pobieranie kodu QR dla zamówienia"""
-    try:
-        with get_db_connection() as conn:
-            if conn:
-                cursor = conn.cursor(cursor_factory=psycopg2.extras.RealDictCursor)
-                cursor.execute("SELECT qr_code, status FROM orders WHERE id = %s", (order_id,))
-                order = cursor.fetchone()
-                
-                if not order:
-                    return jsonify({"status": "error", "message": "Zamówienie nie znalezione"}), 404
-                
-                if order["status"] not in ["pending", "preparing"]:
-                    return jsonify({"status": "error", "message": "Kod QR nieaktywny dla tego statusu"}), 400
-                
-                return jsonify({
-                    "status": "success",
-                    "qr_code": order["qr_code"],
-                    "order_status": order["status"]
-                })
-                
-    except Exception as e:
-        print(f"❌ Błąd pobierania QR dla {order_id}: {e}")
-        return jsonify({"status": "error", "message": "Błąd serwera"}), 500
-    
-    return jsonify({"status": "error", "message": "Brak połączenia z bazą"}), 500
-
 if __name__ == '__main__':
     print("🚀 Uruchamiam IKIGAI Analytics Server...")
     app.run(host='0.0.0.0', port=5001, debug=True) 
-

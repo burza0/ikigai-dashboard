@@ -1177,7 +1177,7 @@ def generate_qr_code(order_id, order_data):
     try:
         # Dane do QR kodu
         qr_data = {
-            "order_id": order_id, "order": {"id": order_id}, "success": True,
+            "order_id": order_id,
             "user_id": order_data.get("user_id"),
             "recipe_id": order_data.get("recipe_id"),
             "machine_id": order_data.get("machine_id"),
@@ -1214,7 +1214,7 @@ def test_order():
 def create_order():
     """Składanie nowego zamówienia"""
     try:
-        raw_data = request.get_json(); print(f"📥 Raw data: {raw_data}"); data = {"user_id": raw_data.get("user_id", "web_user"), "machine_id": raw_data.get("machine_id") or raw_data.get("vending_machine_id", "VM001"), "payment_method": raw_data.get("payment_method", "card"), "recipe_id": raw_data.get("recipe_id", "detox_green"), "notes": raw_data.get("notes", "")}; print(f"📝 Normalized: {data}")
+        data = request.get_json()
         required_fields = ["user_id", "recipe_id", "machine_id", "payment_method"]
         for field in required_fields:
             if not data.get(field):
@@ -1242,7 +1242,7 @@ def create_order():
                     "notes": data.get("notes", "")
                 }
                 # qr_code = generate_qr_code(order_id, order_data)
-                # qr_code = None  # Tymczasowo wyłączone
+                qr_code = None  # Tymczasowo wyłączone
                 qr_code = generate_qr_code(order_id, order_data)
                 
                 cursor.execute("""
@@ -1260,7 +1260,7 @@ def create_order():
                 
                 return jsonify({
                     "status": "success",
-                    "order_id": order_id, "order": {"id": order_id}, "success": True,
+                    "order_id": order_id,
                     "qr_code": qr_code,
                     "total_price": total_price,
                     "estimated_time": 5,
@@ -1458,48 +1458,6 @@ def get_order_qr(order_id):
                 
     except Exception as e:
         print(f"❌ Błąd pobierania QR dla {order_id}: {e}")
-        return jsonify({"status": "error", "message": "Błąd serwera"}), 500
-    
-    return jsonify({"status": "error", "message": "Brak połączenia z bazą"}), 500
-
-@app.route('/api/orders/<order_id>', methods=['DELETE'])
-def delete_order(order_id):
-    """Usuwanie zamówienia z koszyka"""
-    try:
-        with get_db_connection() as conn:
-            if conn:
-                cursor = conn.cursor(cursor_factory=psycopg2.extras.RealDictCursor)
-                
-                # Sprawdź czy zamówienie istnieje i jego status
-                cursor.execute("SELECT id, status FROM orders WHERE id = %s", (order_id,))
-                order = cursor.fetchone()
-                
-                if not order:
-                    return jsonify({"status": "error", "message": "Zamówienie nie znalezione"}), 404
-                
-                # Nie pozwalaj usuwać zamówień w trakcie przygotowania
-                if order["status"] in ["preparing", "ready"]:
-                    return jsonify({
-                        "status": "error", 
-                        "message": "Nie można usunąć zamówienia w trakcie przygotowania"
-                    }), 400
-                
-                # Usuń zamówienie
-                cursor.execute("DELETE FROM orders WHERE id = %s", (order_id,))
-                
-                if cursor.rowcount == 0:
-                    return jsonify({"status": "error", "message": "Nie udało się usunąć zamówienia"}), 500
-                
-                conn.commit()
-                
-                print(f"✅ Zamówienie {order_id} zostało usunięte")
-                return jsonify({
-                    "status": "success",
-                    "message": "Zamówienie zostało usunięte"
-                })
-                
-    except Exception as e:
-        print(f"❌ Błąd usuwania zamówienia {order_id}: {e}")
         return jsonify({"status": "error", "message": "Błąd serwera"}), 500
     
     return jsonify({"status": "error", "message": "Brak połączenia z bazą"}), 500

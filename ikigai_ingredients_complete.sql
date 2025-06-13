@@ -1,0 +1,2 @@
+-- IKIGAI - Nowe składniki PostgreSQL (6 baz + 20 dodatków)
+INSERT INTO ingredients (id, name, category_id, price, unit, calories_per_100g, protein_per_100g, carbs_per_100g, fat_per_100g, fiber_per_100g, description, origin, is_organic, is_available, benefits, allergens) VALUES ('whey_protein_vanilla', 'Białko Serwatkowe Waniliowe', 'proteins', 7.50, 'ml', 102, 20, 4, 1, 0, 'Premium białko serwatkowe', 'Nowa Zelandia', false, true, '["regeneracja"]', '["mleko"]');

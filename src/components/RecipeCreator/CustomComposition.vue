@@ -664,67 +664,82 @@ const createOrder = async () => {
 const fetchIngredients = async () => {
   try {
     loading.value = true
-    const response = await axios.get('http://localhost:5001/api/ingredients/categories')
     
-    if (response.data && response.data.categories) {
-      const data = response.data.categories
+    // Pobierz kategorie składników z PostgreSQL
+    const categoriesResponse = await axios.get('http://localhost:5001/api/ingredients/categories')
+    
+    if (categoriesResponse.data && categoriesResponse.data.data) {
+      const categories = categoriesResponse.data.data
       
-      // Extract bases and toppings from .items arrays
-      bases.value = [
-        ...(data.bases?.traditional?.items || []),
-        ...(data.bases?.liquid_cup?.items || []),
-        ...(data.bases?.powder?.items || [])
-      ]
+      console.log('📦 Kategorie z backend:', categories)
       
-      toppings.value = [
-        ...(data.toppings?.superfoods?.items || []),
-        ...(data.toppings?.fruits_berries?.items || []),
-        ...(data.toppings?.seeds_nuts?.items || []),
-        ...(data.toppings?.spices_herbs?.items || []),
-        ...(data.toppings?.bee_products?.items || []),
-        ...(data.toppings?.detox_cleanse?.items || [])
-      ]
+      // Mapowanie kategorii do frontend
+      const categoryMapping = {
+        'bases': { frontend_key: 'traditional', type: 'base' },
+        'superfoods': { frontend_key: 'superfoods', type: 'topping' },
+        'fruits': { frontend_key: 'fruits', type: 'topping' },
+        'seeds': { frontend_key: 'nuts_seeds', type: 'topping' },
+        'honey': { frontend_key: 'bee_products', type: 'topping' },
+        'detox': { frontend_key: 'detox', type: 'topping' },
+        'vitamins': { frontend_key: 'spices', type: 'topping' },
+        'proteins': { frontend_key: 'superfoods', type: 'topping' }
+      }
       
-      // Add category field to each ingredient for filtering
-      bases.value.forEach(base => {
-        if (!base.category_key) {
-          if (base.type === 'traditional') base.category_key = 'traditional'
-          else if (base.type === 'liquid_cup') base.category_key = 'cups'
-          else if (base.type === 'powder') base.category_key = 'powders'
-        }
-      })
-      
-      toppings.value.forEach(topping => {
-        if (!topping.category_key) {
-          // Use the parent category key from API structure
-          if (data.toppings.superfoods?.items?.includes(topping)) topping.category_key = 'superfoods'
-          else if (data.toppings.fruits_berries?.items?.includes(topping)) topping.category_key = 'fruits'
-          else if (data.toppings.seeds_nuts?.items?.includes(topping)) topping.category_key = 'nuts_seeds'
-          else if (data.toppings.spices_herbs?.items?.includes(topping)) topping.category_key = 'spices'
-          else if (data.toppings.bee_products?.items?.includes(topping)) topping.category_key = 'bee_products'
-          else if (data.toppings.detox_cleanse?.items?.includes(topping)) topping.category_key = 'detox'
-        }
-      })
-      
-      // Update counts
+      // Aktualizuj liczby w kategoriach na podstawie danych z PostgreSQL
       baseCategories.value.forEach(cat => {
-        if (cat.key === 'traditional') cat.count = data.bases?.traditional?.count || 0
-        else if (cat.key === 'cups') cat.count = data.bases?.liquid_cup?.count || 0
-        else if (cat.key === 'powders') cat.count = data.bases?.powder?.count || 0
+        cat.count = 0 // Resetuj
       })
       
       toppingCategories.value.forEach(cat => {
-        if (cat.key === 'superfoods') cat.count = data.toppings?.superfoods?.count || 0
-        else if (cat.key === 'fruits') cat.count = data.toppings?.fruits_berries?.count || 0
-        else if (cat.key === 'nuts_seeds') cat.count = data.toppings?.seeds_nuts?.count || 0
-        else if (cat.key === 'spices') cat.count = data.toppings?.spices_herbs?.count || 0
-        else if (cat.key === 'bee_products') cat.count = data.toppings?.bee_products?.count || 0
-        else if (cat.key === 'detox') cat.count = data.toppings?.detox_cleanse?.count || 0
+        cat.count = 0 // Resetuj
       })
+      
+      // Pobierz składniki dla każdej kategorii
+      const allIngredients = []
+      
+      for (const category of categories) {
+        const mapping = categoryMapping[category.id]
+        if (!mapping) continue
+        
+        // Aktualizuj count w odpowiedniej kategorii frontend
+        if (mapping.type === 'base') {
+          const frontendCat = baseCategories.value.find(c => c.key === mapping.frontend_key)
+          if (frontendCat) frontendCat.count = category.count
+        } else {
+          const frontendCat = toppingCategories.value.find(c => c.key === mapping.frontend_key)
+          if (frontendCat) frontendCat.count += category.count
+        }
+        
+        // Pobierz składniki dla tej kategorii
+        try {
+          const ingredientsResponse = await axios.get(`http://localhost:5001/api/ingredients/category/${category.db_slug}`)
+          if (ingredientsResponse.data && ingredientsResponse.data.data) {
+            const ingredients = ingredientsResponse.data.data.map(ing => ({
+              ...ing,
+              category_key: mapping.frontend_key,
+              type: mapping.type,
+              icon: getIngredientIcon(ing.name, category.id),
+              dietary_labels: ing.allergens || [],
+              safety_labels: ing.benefits || []
+            }))
+            
+            if (mapping.type === 'base') {
+              bases.value.push(...ingredients)
+            } else {
+              toppings.value.push(...ingredients)
+            }
+            
+            allIngredients.push(...ingredients)
+          }
+        } catch (error) {
+          console.error(`❌ Błąd pobierania składników dla kategorii ${category.db_slug}:`, error)
+        }
+      }
       
       console.log('📦 Składniki załadowane:', {
         bases: bases.value.length,
         toppings: toppings.value.length,
+        total: allIngredients.length,
         basesBreakdown: baseCategories.value.map(c => `${c.name}: ${c.count}`),
         toppingsBreakdown: toppingCategories.value.map(c => `${c.name}: ${c.count}`)
       })
@@ -733,6 +748,33 @@ const fetchIngredients = async () => {
     console.error('❌ Błąd ładowania składników:', error)
   } finally {
     loading.value = false
+  }
+}
+
+// Pomocnicza funkcja do przypisywania ikon składnikom
+const getIngredientIcon = (name: string, categoryId: string) => {
+  const lowerName = name.toLowerCase()
+  
+  // Ikony na podstawie nazwy składnika
+  if (lowerName.includes('mleko')) return '🥛'
+  if (lowerName.includes('woda')) return '💧'
+  if (lowerName.includes('chia')) return '🌱'
+  if (lowerName.includes('białko')) return '💪'
+  if (lowerName.includes('protein')) return '💪'
+  if (lowerName.includes('spirulina')) return '🌿'
+  if (lowerName.includes('matcha')) return '🍵'
+  
+  // Ikony na podstawie kategorii
+  switch (categoryId) {
+    case 'bases': return '🥛'
+    case 'superfoods': return '⭐'
+    case 'fruits': return '🍓'
+    case 'seeds': return '🌰'
+    case 'honey': return '🍯'
+    case 'detox': return '🌊'
+    case 'vitamins': return '💊'
+    case 'proteins': return '💪'
+    default: return '🔸'
   }
 }
 

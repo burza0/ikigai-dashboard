@@ -50,7 +50,7 @@
                   <h3 class="font-semibold text-gray-900">{{ base.name }}</h3>
                   <p class="text-sm text-gray-600 mt-1">{{ base.description }}</p>
                   <div class="flex items-center justify-between mt-3">
-                    <span class="text-lg font-bold text-purple-600">{{ base.price.toFixed(2) }}zł</span>
+                    <span class="text-lg font-bold text-purple-600">{{ formatPrice(base.price) }}zł</span>
                     <div class="text-xs text-gray-500">{{ base.nutrition.kcal }} kcal</div>
                   </div>
                   <div class="flex flex-wrap gap-1 mt-2">
@@ -88,7 +88,7 @@
                   <h3 class="font-semibold text-gray-900">{{ topping.name }}</h3>
                   <p class="text-sm text-gray-600 mt-1">{{ topping.description }}</p>
                   <div class="flex items-center justify-between mt-3">
-                    <span class="text-lg font-bold text-green-600">+{{ topping.price.toFixed(2) }}zł</span>
+                    <span class="text-lg font-bold text-green-600">+{{ formatPrice(topping.price) }}zł</span>
                     <div class="text-xs text-gray-500">{{ topping.nutrition.kcal }} kcal</div>
                   </div>
                   <div class="flex flex-wrap gap-1 mt-2">
@@ -131,7 +131,7 @@
                 <span class="text-2xl mr-3">{{ selectedBase.icon }}</span>
                 <div class="flex-1">
                   <div class="font-semibold">{{ selectedBase.name }}</div>
-                  <div class="text-sm text-gray-600">{{ selectedBase.price.toFixed(2) }}zł</div>
+                  <div class="text-sm text-gray-600">{{ formatPrice(selectedBase.price) }}zł</div>
                 </div>
               </div>
               
@@ -143,7 +143,7 @@
                   <span class="text-xl mr-2">{{ topping.icon }}</span>
                   <div class="flex-1">
                     <div class="text-sm font-medium">{{ topping.name }}</div>
-                    <div class="text-xs text-gray-600">+{{ topping.price.toFixed(2) }}zł</div>
+                    <div class="text-xs text-gray-600">+{{ formatPrice(topping.price) }}zł</div>
                   </div>
                 </div>
               </div>
@@ -184,7 +184,7 @@
               
               <!-- Cena całkowita -->
               <div class="bg-purple-100 rounded-lg p-4 text-center">
-                <div class="text-2xl font-bold text-purple-600">{{ totalPrice.toFixed(2) }}zł</div>
+                <div class="text-2xl font-bold text-purple-600">{{ formatPrice(totalPrice) }}zł</div>
                 <div class="text-sm text-purple-700">Cena całkowita</div>
               </div>
               
@@ -223,7 +223,7 @@
               <span class="text-2xl mr-3">{{ selectedBase.icon }}</span>
               <div class="flex-1">
                 <div class="font-semibold">{{ selectedBase.name }}</div>
-                <div class="text-sm text-gray-600">{{ selectedBase.price.toFixed(2) }}zł</div>
+                <div class="text-sm text-gray-600">{{ formatPrice(selectedBase.price) }}zł</div>
               </div>
             </div>
             
@@ -235,7 +235,7 @@
                 <span class="text-xl mr-2">{{ topping.icon }}</span>
                 <div class="flex-1">
                   <div class="text-sm font-medium">{{ topping.name }}</div>
-                  <div class="text-xs text-gray-600">+{{ topping.price.toFixed(2) }}zł</div>
+                  <div class="text-xs text-gray-600">+{{ formatPrice(topping.price) }}zł</div>
                 </div>
               </div>
             </div>
@@ -276,7 +276,7 @@
             
             <!-- Cena całkowita -->
             <div class="bg-purple-100 rounded-lg p-4 text-center">
-              <div class="text-2xl font-bold text-purple-600">{{ totalPrice.toFixed(2) }}zł</div>
+              <div class="text-2xl font-bold text-purple-600">{{ formatPrice(totalPrice) }}zł</div>
               <div class="text-sm text-purple-700">Cena całkowita</div>
             </div>
             
@@ -318,7 +318,7 @@
           </div>
           <p class="text-sm text-gray-600 mb-3">{{ mixture.description }}</p>
           <div class="flex items-center justify-between mb-3">
-            <span class="font-bold text-purple-600">{{ mixture.total_price.toFixed(2) }}zł</span>
+            <span class="font-bold text-purple-600">{{ formatPrice(mixture.total_price) }}zł</span>
             <div class="text-xs text-gray-500">{{ mixture.total_kcal }} kcal</div>
           </div>
           
@@ -380,7 +380,7 @@
           <h3 class="font-semibold text-gray-900 mb-2">{{ rec.name }}</h3>
           <p class="text-sm text-gray-600 mb-3">{{ rec.description }}</p>
           <div class="flex items-center justify-between">
-            <span class="font-bold text-purple-600">{{ rec.total_price.toFixed(2) }}zł</span>
+            <span class="font-bold text-purple-600">{{ formatPrice(rec.total_price) }}zł</span>
             <div class="flex items-center text-sm text-gray-500">
               <span class="mr-2">❤️ {{ rec.popularity }}%</span>
               <span>💚 {{ rec.health_score }}/100</span>
@@ -410,7 +410,7 @@
             </div>
             <div class="text-sm text-gray-600">
               <p>🎯 Zeskanuj ten kod w automacie IKIGAI</p>
-              <p>💳 Cena: {{ selectedQrMixture.total_price.toFixed(2) }}zł</p>
+              <p>💳 Cena: {{ formatPrice(selectedQrMixture.total_price) }}zł</p>
               <p>🆔 ID: {{ selectedQrMixture.order_id }}</p>
             </div>
             <div class="flex gap-3">
@@ -441,6 +441,12 @@ import { ref, computed, onMounted } from 'vue'
 defineEmits<{
   navigate: (view: string) => void
 }>()
+
+// Helper function for safe price formatting
+const formatPrice = (price: any): string => {
+  const numPrice = parseFloat(price) || 0
+  return numPrice.toFixed(2)
+}
 
 // Reactive data
 const bases = ref([])
