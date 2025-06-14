@@ -65,3 +65,8 @@ jspm_packages/
 backend/api/__pycache__/
 *.sqlite
 *.db
+
+# Environment variables
+.env
+.env.local
+.env.*.local

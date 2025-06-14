@@ -319,7 +319,7 @@ const locations = ref([
 ])
 
 // Google Maps configuration  
-const GOOGLE_MAPS_API_KEY = 'AIzaSyB41DRUbKWJHPxaFjMAwdrzWzbVKartNGg' // Demo key
+const GOOGLE_MAPS_API_KEY = import.meta.env.VITE_GOOGLE_MAPS_API_KEY
 const mapOptions = {
   center: { lat: 50.0647, lng: 19.9450 }, // Kraków center
   zoom: 13,
@@ -331,6 +331,11 @@ const initializeMap = async () => {
   try {
     mapLoading.value = true
     mapError.value = ''
+    
+    // Security check: Sprawdź czy klucz API jest dostępny
+    if (!GOOGLE_MAPS_API_KEY) {
+      throw new Error('Google Maps API key nie jest skonfigurowany. Sprawdź plik .env')
+    }
     
     const loader = new Loader({
       apiKey: GOOGLE_MAPS_API_KEY,

@@ -4,12 +4,6 @@ import os
 import sys
 
 # Import modułów 
-import orders
-import products  
-import zawodnicy
-import qr_generation
-import centrum_startu
-
 print("🎯 Ładuję IKIGAI Modules...")
 print("🛒 orders.py - QR Orders Workflow")
 print("🛍️ products.py - Product Catalog & Vending Machines")
@@ -22,9 +16,9 @@ app = Flask(__name__)
 CORS(app)
 
 # Import blueprintów
-from orders import orders_bp
-from products import products_bp, ingredients_bp
-from loyalty import loyalty_bp
+from api.orders import orders_bp
+from api.products import products_bp, ingredients_bp
+from api.loyalty import loyalty_bp
 
 # Logging dla debugowania
 import logging
