@@ -16,6 +16,7 @@
     "optimize": "npm run build:prod && npm run analyze"
   },
   "dependencies": {
+    "@googlemaps/js-api-loader": "^1.16.8",
     "@heroicons/vue": "^2.2.0",
     "@types/qrcode": "^1.5.5",
     "axios": "^1.9.0",
@@ -34,4 +35,4 @@
     "vite": "^6.3.5",
     "vue-tsc": "^2.2.8"
   }
-} 
+}
