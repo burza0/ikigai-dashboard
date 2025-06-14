@@ -408,12 +408,29 @@ def get_meal_recipes():
             conn = psycopg2.connect(DATABASE_URL)
             cursor = conn.cursor(cursor_factory=psycopg2.extras.RealDictCursor)
             
+            # Get recipes with ingredients
             cursor.execute("""
-                SELECT id, name, category_id as category, description, 
-                       calories, protein, carbs, price, health_score, prep_time
-                FROM recipes 
-                WHERE is_available = true
-                ORDER BY id
+                SELECT r.id, r.name, r.category_id as category, r.description, 
+                       r.calories, r.protein, r.carbs, r.price, r.health_score, r.prep_time,
+                       COALESCE(
+                           json_agg(
+                               json_build_object(
+                                   'id', i.slug,
+                                   'name', i.name,
+                                   'amount', ri.amount,
+                                   'unit', ri.unit,
+                                   'price', i.price,
+                                   'required', ri.is_required
+                               ) ORDER BY ri.is_required DESC, i.name
+                           ) FILTER (WHERE i.id IS NOT NULL), 
+                           '[]'::json
+                       ) as ingredients_json
+                FROM recipes r 
+                LEFT JOIN recipe_ingredients ri ON r.id = ri.recipe_id
+                LEFT JOIN ingredients i ON ri.ingredient_id = i.slug
+                WHERE r.is_available = true
+                GROUP BY r.id, r.name, r.category_id, r.description, r.calories, r.protein, r.carbs, r.price, r.health_score, r.prep_time
+                ORDER BY r.id
             """)
             
             recipes_data = cursor.fetchall()
@@ -422,13 +439,13 @@ def get_meal_recipes():
             # Convert to frontend format
             recipes = []
             for recipe in recipes_data:
-                # Parse JSON ingredients if it's a string
-                ingredients = []  # PostgreSQL nie ma tej kolumny
-                if isinstance(ingredients, str):
-                    try:
-                        ingredients = json.loads(ingredients)
-                    except:
-                        ingredients = []
+                # Parse ingredients JSON
+                ingredients = recipe['ingredients_json'] if recipe['ingredients_json'] else []
+                
+                # Calculate total price from ingredients
+                total_price = float(recipe['price']) if recipe['price'] else 0
+                if ingredients:
+                    total_price = sum(float(ing.get('price', 0)) * float(ing.get('amount', 1)) / 100 for ing in ingredients)
                 
                 recipes.append({
                     "id": recipe['id'],
@@ -439,14 +456,24 @@ def get_meal_recipes():
                     "calories": recipe['calories'],
                     "protein": recipe['protein'],
                     "carbs": recipe['carbs'],
-                    "price": float(recipe['price']) if recipe['price'] else 0,
+                    "price": total_price,
+                    "total_price": total_price,  # Frontend compatibility
                     "health_score": recipe['health_score'],
-                    "prep_time": recipe['prep_time'],
+                    "prep_time": f"{recipe['prep_time']} min" if recipe['prep_time'] else "5 min",
                     "difficulty": "easy",
-                    "tags": ["healthy", "fresh"]
+                    "tags": ["healthy", "fresh"],
+                    "nutrition": {  # Frontend expects nutrition object
+                        "kcal": recipe['calories'],
+                        "protein": recipe['protein'],
+                        "carbs": recipe['carbs'],
+                        "fat": 12  # Estimated
+                    },
+                    "popularity": 95,  # Frontend expects this
+                    "base": ingredients[0]['id'] if ingredients else None,  # First ingredient as base
+                    "toppings": [ing['id'] for ing in ingredients[1:]] if len(ingredients) > 1 else []  # Rest as toppings
                 })
             
-            print(f"✅ Pobrano {len(recipes)} przepisów z PostgreSQL"); print("Przepisy:", [r["name"] for r in recipes])
+            print(f"✅ Pobrano {len(recipes)} przepisów z {sum(len(r['ingredients']) for r in recipes)} składnikami z PostgreSQL")
             return jsonify({
                 "status": "success",
                 "data": recipes
@@ -570,76 +597,105 @@ def get_meal_categories():
 
 @app.route('/api/meal-recipes/<recipe_id>', methods=['GET'])
 def get_meal_recipe_by_id(recipe_id):
-    """Szczegóły pojedynczego przepisu"""
-    recipes = {
-        "energetic_morning": {
-            "id": "energetic_morning",
-            "name": "Energetyczny Start Dnia",
-            "category": "breakfast",
-            "description": "Idealna mieszanka na poranną energię z superpozywkami",
-            "long_description": "Ta wyjątkowa mieszanka łączy moc spiruliny z wysokiej jakości białkiem i naturalnymi elektrolitami z wody kokosowej. Nasiona chia dodają omega-3 i błonnik.",
-            "ingredients": [
-                {
-                    "id": "spirulina_powder",
-                    "name": "Spirulina Powder BIO",
-                    "amount": "5g",
-                    "benefits": ["Witamina B12", "Żelazo", "Białko kompletne"]
+    """Szczegóły pojedynczego przepisu z PostgreSQL"""
+    try:
+        # Try PostgreSQL first
+        DATABASE_URL = os.environ.get('DATABASE_URL')
+        if DATABASE_URL:
+            if DATABASE_URL.startswith('postgres://'):
+                DATABASE_URL = DATABASE_URL.replace('postgres://', 'postgresql://', 1)
+            
+            import psycopg2
+            import psycopg2.extras
+            
+            conn = psycopg2.connect(DATABASE_URL)
+            cursor = conn.cursor(cursor_factory=psycopg2.extras.RealDictCursor)
+            
+            # Get recipe with detailed ingredients
+            cursor.execute("""
+                SELECT r.id, r.name, r.category_id as category, r.description, 
+                       r.calories, r.protein, r.carbs, r.price, r.health_score, r.prep_time,
+                       COALESCE(
+                           json_agg(
+                               json_build_object(
+                                   'id', i.slug,
+                                   'name', i.name,
+                                   'amount', CONCAT(ri.amount, ri.unit),
+                                   'benefits', ARRAY['Wysokiej jakości składnik', 'Naturalne źródło energii'],
+                                   'price', i.price,
+                                   'required', ri.is_required
+                               ) ORDER BY ri.is_required DESC, i.name
+                           ) FILTER (WHERE i.id IS NOT NULL), 
+                           '[]'::json
+                       ) as ingredients_json
+                FROM recipes r 
+                LEFT JOIN recipe_ingredients ri ON r.id = ri.recipe_id
+                LEFT JOIN ingredients i ON ri.ingredient_id = i.slug
+                WHERE r.id = %s AND r.is_available = true
+                GROUP BY r.id, r.name, r.category_id, r.description, r.calories, r.protein, r.carbs, r.price, r.health_score, r.prep_time
+            """, (recipe_id,))
+            
+            recipe_data = cursor.fetchone()
+            conn.close()
+            
+            if not recipe_data:
+                return jsonify({"status": "error", "message": "Przepis nie znaleziony"}), 404
+            
+            # Parse ingredients JSON
+            ingredients = recipe_data['ingredients_json'] if recipe_data['ingredients_json'] else []
+            
+            # Calculate total price from ingredients
+            total_price = float(recipe_data['price']) if recipe_data['price'] else 0
+            if ingredients:
+                total_price = sum(float(ing.get('price', 0)) * float(ing.get('amount', '0').replace('g', '').replace('ml', '')) / 100 for ing in ingredients)
+            
+            recipe = {
+                "id": recipe_data['id'],
+                "name": recipe_data['name'],
+                "category": recipe_data['category'],
+                "description": recipe_data['description'],
+                "long_description": f"Ta wyjątkowa mieszanka {recipe_data['name']} została starannie opracowana z najwyższej jakości składników dla maksymalnych korzyści zdrowotnych.",
+                "ingredients": ingredients,
+                "nutrition": {
+                    "calories": recipe_data['calories'],
+                    "protein": recipe_data['protein'],
+                    "carbs": recipe_data['carbs'],
+                    "fat": 12,  # Estimated
+                    "fiber": 8,  # Estimated
+                    "sugar": 6   # Estimated
                 },
-                {
-                    "id": "protein_vanilla",
-                    "name": "Protein Vanilla Premium",
-                    "amount": "25g",
-                    "benefits": ["Budowa mięśni", "Długotrwała sytość", "Aminokwasy"]
-                },
-                {
-                    "id": "coconut_water",
-                    "name": "Woda Kokosowa Premium",
-                    "amount": "250ml",
-                    "benefits": ["Elektrolity", "Nawodnienie", "Potas"]
-                },
-                {
-                    "id": "chia_seeds",
-                    "name": "Chia Seeds Premium",
-                    "amount": "15g",
-                    "benefits": ["Omega-3", "Błonnik", "Magnez"]
-                }
-            ],
-            "nutrition": {
-                "calories": 320,
-                "protein": 25,
-                "carbs": 18,
-                "fat": 12,
-                "fiber": 8,
-                "sugar": 6
-            },
-            "health_score": 94,
-            "prep_time": 3,
-            "price": 16.60,
-            "difficulty": "easy",
-            "tags": ["high-protein", "energizing", "superfood"],
-            "instructions": [
-                "Dodaj spirulinę do shakera",
-                "Wlej wodę kokosową",
-                "Dodaj protein waniliowy",
-                "Wsyp nasiona chia na koniec",
-                "Potrząsaj przez 30 sekund"
-            ],
-            "tips": [
-                "Najlepiej spożyć w ciągu 30 minut od przygotowania",
-                "Możesz dodać kostki lodu dla lepszego smaku",
-                "Idealne na śniadanie lub przekąskę przedtreningową"
-            ]
-        }
-    }
-    
-    recipe = recipes.get(recipe_id)
-    if not recipe:
-        return jsonify({"status": "error", "message": "Przepis nie znaleziony"}), 404
-    
-    return jsonify({
-        "status": "success",
-        "data": recipe
-    })
+                "health_score": recipe_data['health_score'],
+                "prep_time": f"{recipe_data['prep_time']} min" if recipe_data['prep_time'] else "5 min",
+                "total_price": total_price,
+                "price": total_price,
+                "difficulty": "easy",
+                "tags": ["healthy", "fresh", "premium"],
+                "instructions": [
+                    "Przygotuj wszystkie składniki",
+                    "Dodaj składniki suche do shakera",
+                    "Wlej płyn i dobrze wymieszaj",
+                    "Potrząsaj energicznie przez 30 sekund",
+                    "Podawaj natychmiast po przygotowaniu"
+                ],
+                "tips": [
+                    "Najlepiej spożyć w ciągu 30 minut od przygotowania",
+                    "Możesz dodać kostki lodu dla lepszego smaku",
+                    "Idealne jako zdrowa przekąska lub uzupełnienie posiłku"
+                ]
+            }
+            
+            return jsonify({
+                "status": "success",
+                "data": recipe
+            })
+        
+        # Fallback to hardcoded data if PostgreSQL fails
+        else:
+            return jsonify({"status": "error", "message": "Baza danych niedostępna"}), 500
+            
+    except Exception as e:
+        print(f"❌ Błąd pobierania szczegółów przepisu {recipe_id}: {e}")
+        return jsonify({"status": "error", "message": "Błąd pobierania przepisu"}), 500
 
 @app.route('/api/recommendations', methods=['GET'])
 def get_recommendations():

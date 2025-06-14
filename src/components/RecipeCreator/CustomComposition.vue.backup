@@ -332,7 +332,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, onMounted, defineProps, defineEmits, reactive } from 'vue'
+import { ref, computed, onMounted, defineProps, defineEmits } from 'vue'
 import axios from 'axios'
 import SmartSuggestions from '../SmartSuggestions.vue'
 import FavoritesPanel from '../FavoritesPanel.vue'
@@ -569,13 +569,6 @@ const removeTopping = (topping: any) => {
   }
 }
 
-const addTopping = (topping: any) => {
-  const exists = selectedToppings.value.find(t => t.id === topping.id)
-  if (!exists) {
-    selectedToppings.value.push(topping)
-  }
-}
-
 const removeToppings = (topping: any) => {
   removeTopping(topping)
 }
@@ -668,7 +661,7 @@ const createOrder = async () => {
     const response = await axios.post('http://localhost:5001/api/orders', orderData)
     
     if (response.data.success) {
-      alert(`✅ Zamówienie "${compositionName.value}" zostało utworzone! 💰 ${totalPrice.value.toFixed(2)}zł`)
+      showToast('success', `🎉 Zamówienie "${compositionName.value}" zostało utworzone! 💰 ${totalPrice.value.toFixed(2)}zł`)
       
       // Optionally save composition and reset
       if (!props.savedCompositions.some(c => c.name === compositionName.value)) {

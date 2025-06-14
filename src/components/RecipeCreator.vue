@@ -102,12 +102,22 @@
     <!-- Success Toast -->
     <div v-if="toast.show" 
          :class="[
-           'fixed top-4 right-4 z-50 p-4 rounded-xl shadow-lg transition-all duration-300',
+           'fixed top-4 right-4 z-50 p-6 rounded-xl shadow-lg transition-all duration-300 max-w-md',
            toast.type === 'success' ? 'bg-green-500 text-white' : 'bg-red-500 text-white'
          ]">
-      <div class="flex items-center">
-        <span class="text-xl mr-2">{{ toast.type === 'success' ? '✅' : '❌' }}</span>
-        <span class="font-medium">{{ toast.message }}</span>
+      <div class="flex items-start">
+        <span class="text-2xl mr-3 flex-shrink-0">{{ toast.type === 'success' ? '✅' : '❌' }}</span>
+        <div class="flex-1">
+          <div class="text-sm opacity-90 uppercase tracking-wide">
+            {{ toast.message.split('\n')[0] }}
+          </div>
+          <div v-if="toast.message.includes('\n')" class="text-lg font-bold mt-1 leading-tight">
+            {{ toast.message.split('\n')[1] }}
+          </div>
+          <div v-else class="font-medium">
+            {{ toast.message }}
+          </div>
+        </div>
       </div>
     </div>
   </div>
@@ -165,29 +175,40 @@ const showRecipeModal = (recipe: any) => {
 const handleOrderRecipe = async (recipe: any) => {
   try {
     console.log('🛒 Zamawianie przepisu:', recipe.name)
+    console.log('🔍 Dane przepisu:', recipe)
+    
+    // Use price if total_price is not available
+    const totalPrice = recipe.total_price || recipe.price || 0
     
     const orderData = {
       type: 'meal_recipe',
       recipe_id: recipe.id,
       name: recipe.name,
-      total_price: recipe.total_price,
-      total_calories: recipe.calories,
-      base: recipe.base,
-      toppings: recipe.toppings,
+      total_price: totalPrice,
+      total_calories: recipe.calories || recipe.nutrition?.kcal || 0,
+      base: recipe.base || (recipe.ingredients && recipe.ingredients[0] ? recipe.ingredients[0].id : null),
+      toppings: recipe.toppings || (recipe.ingredients ? recipe.ingredients.slice(1).map(ing => ing.id) : []),
       custom_composition: false
     }
     
+    console.log('📦 Dane zamówienia:', orderData)
+    
     const response = await axios.post('http://localhost:5001/api/orders', orderData)
     
-    if (response.data.success) {
-      showToast('success', `Zamówienie "${recipe.name}" zostało utworzone! QR: ${response.data.qr_code}`)
+    console.log('✅ Odpowiedź API:', response.data)
+    
+    if (response.data.success || response.data.status === 'success') {
+      showToast('success', `zamówienie dodane\n${recipe.name.toUpperCase()}`)
       selectedRecipe.value = null // Close modal
     } else {
       throw new Error(response.data.message || 'Błąd tworzenia zamówienia')
     }
   } catch (error) {
     console.error('❌ Błąd zamówienia:', error)
-    showToast('error', `Błąd tworzenia zamówienia: ${error.message}`)
+    console.error('❌ Szczegóły błędu:', error.response?.data)
+    
+    const errorMessage = error.response?.data?.message || error.message || 'Nieznany błąd'
+    showToast('error', `❌ Błąd tworzenia zamówienia: ${errorMessage}`)
   }
 }
 
