@@ -1,1 +1,1 @@
-web: gunicorn backend.analytics_server:app --bind 0.0.0.0:$PORT --timeout 120 --workers 1 
+web: gunicorn backend.app:app --bind 0.0.0.0:$PORT --timeout 120 --workers 1

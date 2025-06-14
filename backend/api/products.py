@@ -6,6 +6,7 @@ Katalog produktów zdrowotnych z automatów vendingowych
 from flask import Blueprint, request, jsonify
 
 products_bp = Blueprint('products', __name__)
+ingredients_bp = Blueprint('ingredients', __name__)
 
 # 🍃 Demo produkty IKIGAI
 IKIGAI_PRODUCTS = {
@@ -372,4 +373,22 @@ def get_all_dietary_labels():
             'count': sum(1 for p in IKIGAI_PRODUCTS.values() if label in p['dietary_labels'])
         }
         for label in sorted(labels)
-    ] 
+    ]
+
+# Ingredients endpoints
+@ingredients_bp.route('/api/ingredients', methods=['GET'])
+def get_ingredients():
+    """Pobiera listę wszystkich składników"""
+    ingredients = [
+        {'id': 'whey_protein', 'name': 'Whey Protein', 'category': 'proteins', 'price': 4.50},
+        {'id': 'spirulina_powder', 'name': 'Spirulina Powder BIO', 'category': 'superfoods', 'price': 3.80},
+        {'id': 'almond_milk', 'name': 'Mleko Migdałowe', 'category': 'bases', 'price': 2.20},
+        {'id': 'coconut_water', 'name': 'Woda Kokosowa Premium', 'category': 'bases', 'price': 2.80},
+        {'id': 'matcha_powder', 'name': 'Matcha Premium Grade A', 'category': 'superfoods', 'price': 5.20},
+        {'id': 'chia_seeds', 'name': 'Chia Seeds Premium', 'category': 'seeds', 'price': 3.50}
+    ]
+    
+    return jsonify({
+        'status': 'success',
+        'data': ingredients
+    }) 
